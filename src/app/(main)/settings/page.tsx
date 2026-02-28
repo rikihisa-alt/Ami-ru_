@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Copy, LogOut } from "lucide-react";
+import { Copy, LogOut, Settings, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function SettingsPage() {
@@ -29,7 +29,6 @@ export default function SettingsPage() {
       if (!profile?.pair_id) return;
       const supabase = createClient();
 
-      // Get invite code
       const { data: pair } = await supabase
         .from("pairs")
         .select("invite_code")
@@ -37,7 +36,6 @@ export default function SettingsPage() {
         .single();
       setInviteCode(pair?.invite_code ?? null);
 
-      // Get partner name
       const { data: partner } = await supabase
         .from("profiles")
         .select("display_name")
@@ -65,11 +63,14 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">設定</h1>
+      <div className="flex items-center gap-2">
+        <Settings className="h-5 w-5 text-pink-400" />
+        <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">設定</h1>
+      </div>
 
-      <Card>
+      <Card className="border-pink-100/60 dark:border-pink-900/20">
         <CardHeader>
-          <CardTitle className="text-base">プロフィール</CardTitle>
+          <CardTitle className="text-base text-pink-600 dark:text-pink-400">プロフィール</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
@@ -85,9 +86,12 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-pink-100/60 dark:border-pink-900/20">
         <CardHeader>
-          <CardTitle className="text-base">ペア情報</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base text-pink-600 dark:text-pink-400">
+            <Heart className="h-4 w-4 fill-pink-300 text-pink-400" />
+            ペア情報
+          </CardTitle>
           <CardDescription>
             {partnerName
               ? `パートナー: ${partnerName}`
@@ -104,8 +108,8 @@ export default function SettingsPage() {
                   readOnly
                   className="font-mono text-sm tracking-wider"
                 />
-                <Button variant="outline" size="icon" onClick={handleCopyCode}>
-                  <Copy className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="border-pink-200 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950" onClick={handleCopyCode}>
+                  <Copy className="h-4 w-4 text-pink-500" />
                 </Button>
               </div>
             </div>
@@ -113,7 +117,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Separator />
+      <Separator className="bg-pink-100 dark:bg-pink-900/30" />
 
       <Button
         variant="destructive"

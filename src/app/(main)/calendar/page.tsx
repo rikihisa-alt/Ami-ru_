@@ -45,7 +45,6 @@ export default function CalendarPage() {
     }
   };
 
-  // Group events by date for list view
   const eventsByDate = useMemo(() => {
     if (!events) return {};
     return events.reduce(
@@ -62,7 +61,6 @@ export default function CalendarPage() {
     );
   }, [events]);
 
-  // Calendar grid
   const calendarDays = useMemo(() => {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -89,26 +87,29 @@ export default function CalendarPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">予定</h1>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={prevMonth}>
+          <CalendarIcon className="h-5 w-5 text-pink-400" />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">予定</h1>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="min-w-[100px] text-center text-sm font-medium">
             {formatMonthYear(new Date(year, month))}
           </span>
-          <Button variant="ghost" size="icon" onClick={nextMonth}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={nextMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="month">
-        <TabsList className="w-full">
-          <TabsTrigger value="month" className="flex-1">
+        <TabsList className="w-full bg-pink-50/50 dark:bg-pink-950/20">
+          <TabsTrigger value="month" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-pink-500 dark:data-[state=active]:bg-background">
             月
           </TabsTrigger>
-          <TabsTrigger value="list" className="flex-1">
+          <TabsTrigger value="list" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-pink-500 dark:data-[state=active]:bg-background">
             リスト
           </TabsTrigger>
         </TabsList>
@@ -132,12 +133,12 @@ export default function CalendarPage() {
                   key={day}
                   onClick={() => setSelectedDate(dateStr === selectedDate ? null : dateStr)}
                   className={cn(
-                    "flex flex-col items-center gap-0.5 rounded-lg p-1 transition-colors",
-                    isToday && "bg-primary/10 font-bold",
-                    isSelected && "ring-2 ring-primary"
+                    "flex flex-col items-center gap-0.5 rounded-xl p-1 transition-all",
+                    isToday && "bg-pink-50 font-bold dark:bg-pink-950/40",
+                    isSelected && "ring-2 ring-pink-400"
                   )}
                 >
-                  <span className={cn("text-sm", isToday && "text-primary")}>
+                  <span className={cn("text-sm", isToday && "text-pink-500")}>
                     {day}
                   </span>
                   {dayEvents.length > 0 && (
@@ -145,7 +146,7 @@ export default function CalendarPage() {
                       {dayEvents.slice(0, 3).map((_: unknown, idx: number) => (
                         <div
                           key={idx}
-                          className="h-1 w-1 rounded-full bg-primary"
+                          className="h-1 w-1 rounded-full bg-pink-400"
                         />
                       ))}
                     </div>
@@ -155,10 +156,9 @@ export default function CalendarPage() {
             })}
           </div>
 
-          {/* Selected day events */}
           {selectedDate && (
             <div className="mt-4 space-y-2">
-              <h3 className="text-sm font-medium">
+              <h3 className="text-sm font-medium text-pink-500">
                 {formatDate(selectedDate)}
               </h3>
               {(eventsByDate[selectedDate] ?? []).length === 0 ? (
@@ -174,7 +174,7 @@ export default function CalendarPage() {
                     is_all_day: boolean;
                     location: string | null;
                   }) => (
-                    <Card key={event.id} className="flex items-center gap-3 p-3">
+                    <Card key={event.id} className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20">
                       <div className="flex-1">
                         <p className="text-sm font-medium">{event.title}</p>
                         <p className="text-xs text-muted-foreground">
@@ -184,7 +184,7 @@ export default function CalendarPage() {
                         </p>
                         {event.location && (
                           <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="h-3 w-3 text-pink-400" />
                             {event.location}
                           </p>
                         )}
@@ -192,7 +192,7 @@ export default function CalendarPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground"
+                        className="h-8 w-8 text-muted-foreground hover:text-red-400"
                         onClick={() => handleDelete(event.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -211,14 +211,16 @@ export default function CalendarPage() {
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-16 animate-pulse rounded-lg bg-muted"
+                  className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30"
                 />
               ))}
             </div>
           ) : events?.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-              <CalendarIcon className="h-12 w-12" />
-              <p>今月の予定はありません</p>
+            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
+                <CalendarIcon className="h-8 w-8 text-pink-300" />
+              </div>
+              <p className="font-medium">今月の予定はありません</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -226,19 +228,19 @@ export default function CalendarPage() {
                 .sort(([a], [b]) => a.localeCompare(b))
                 .map(([date, dayEvents]) => (
                   <div key={date}>
-                    <h3 className="mb-1 text-xs font-medium text-muted-foreground">
+                    <h3 className="mb-1 text-xs font-medium text-pink-400">
                       {formatDate(date)}
                     </h3>
                     {(dayEvents as { id: string; title: string; start_at: string; is_all_day: boolean; location: string | null }[]).map((event) => (
                       <Card
                         key={event.id}
-                        className="mb-2 flex items-center gap-3 p-3"
+                        className="mb-2 flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20"
                       >
                         <div className="flex-1">
                           <p className="text-sm font-medium">{event.title}</p>
                           <div className="flex gap-2">
                             {event.is_all_day ? (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="bg-violet-50 text-violet-500 text-xs dark:bg-violet-900/30 dark:text-violet-300">
                                 終日
                               </Badge>
                             ) : (
@@ -248,7 +250,7 @@ export default function CalendarPage() {
                             )}
                             {event.location && (
                               <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" />
+                                <MapPin className="h-3 w-3 text-pink-400" />
                                 {event.location}
                               </span>
                             )}
@@ -257,7 +259,7 @@ export default function CalendarPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground"
+                          className="h-8 w-8 text-muted-foreground hover:text-red-400"
                           onClick={() => handleDelete(event.id)}
                         >
                           <Trash2 className="h-4 w-4" />

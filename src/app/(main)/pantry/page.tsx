@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PANTRY_CATEGORIES } from "@/lib/utils/categories";
-import { ShoppingCart, Package } from "lucide-react";
+import { ShoppingCart, Package, Refrigerator } from "lucide-react";
 
 export default function PantryPage() {
   const { data: items, isLoading } = usePantryItems();
@@ -50,8 +50,11 @@ export default function PantryPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">冷蔵庫</h1>
-        <Button variant="outline" size="sm" asChild>
+        <div className="flex items-center gap-2">
+          <Refrigerator className="h-5 w-5 text-pink-400" />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">冷蔵庫</h1>
+        </div>
+        <Button variant="outline" size="sm" className="border-pink-200 text-pink-500 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950" asChild>
           <Link href="/pantry/shopping">
             <ShoppingCart className="mr-1 h-4 w-4" />
             買い物リスト
@@ -91,14 +94,16 @@ export default function PantryPage() {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="h-16 animate-pulse rounded-lg bg-muted"
+              className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30"
             />
           ))}
         </div>
       ) : filteredItems?.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-          <Package className="h-12 w-12" />
-          <p>食材がありません</p>
+        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
+            <Package className="h-8 w-8 text-pink-300" />
+          </div>
+          <p className="font-medium">食材がありません</p>
           <p className="text-sm">右下の＋ボタンから追加しましょう</p>
         </div>
       ) : (

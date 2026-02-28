@@ -14,14 +14,15 @@ import {
   CheckSquare,
   Wallet,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
 const expiryColors = {
-  expired: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  today: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  soon: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  ok: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  expired: "bg-red-50 text-red-400 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+  today: "bg-amber-50 text-amber-500 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
+  soon: "bg-orange-50 text-orange-400 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+  ok: "bg-emerald-50 text-emerald-500 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
   none: "",
 };
 
@@ -30,7 +31,6 @@ export default function HomePage() {
   const { user, profile } = useUser();
   const pairId = profile?.pair_id;
 
-  // Today's events
   const { data: todayEvents } = useQuery({
     queryKey: ["home", "events", pairId],
     queryFn: async () => {
@@ -48,7 +48,6 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  // Expiring pantry items
   const { data: expiringItems } = useQuery({
     queryKey: ["home", "expiring", pairId],
     queryFn: async () => {
@@ -66,7 +65,6 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  // Today's todos
   const { data: todayTodos } = useQuery({
     queryKey: ["home", "todos", pairId],
     queryFn: async () => {
@@ -82,7 +80,6 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  // This month's settlement
   const { data: settlement } = useQuery({
     queryKey: ["home", "settlement", pairId],
     queryFn: async () => {
@@ -100,7 +97,6 @@ export default function HomePage() {
 
       if (!expenses?.length || !user) return null;
 
-      // Get partner
       const { data: partner } = await supabase
         .from("profiles")
         .select("id, display_name")
@@ -122,27 +118,31 @@ export default function HomePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">
-        こんにちは、{profile?.display_name || "ゲスト"}さん
-      </h1>
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-pink-400" />
+        <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">
+          {profile?.display_name || "ゲスト"}さん
+        </h1>
+      </div>
 
-      {/* Today's Events */}
       <Link href="/calendar">
-        <Card>
+        <Card className="border-pink-100 bg-gradient-to-br from-white to-violet-50/50 transition-shadow hover:shadow-md dark:border-pink-900/30 dark:from-background dark:to-violet-950/20">
           <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <Calendar className="h-4 w-4 text-blue-500" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/40">
+              <Calendar className="h-3.5 w-3.5 text-violet-500" />
+            </div>
             <CardTitle className="text-sm font-medium">今日の予定</CardTitle>
           </CardHeader>
           <CardContent>
             {todayEvents?.length === 0 ? (
               <p className="text-sm text-muted-foreground">予定はありません</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {todayEvents?.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => (
                   <li key={event.id} className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">
+                    <Badge variant="secondary" className="bg-violet-50 text-violet-500 text-xs dark:bg-violet-900/30 dark:text-violet-300">
                       {event.is_all_day ? "終日" : formatDateTime(event.start_at).split(" ")[1]}
-                    </span>
+                    </Badge>
                     <span>{event.title}</span>
                   </li>
                 ))}
@@ -152,27 +152,23 @@ export default function HomePage() {
         </Card>
       </Link>
 
-      {/* Expiring Items */}
       {expiringItems && expiringItems.length > 0 && (
         <Link href="/pantry">
-          <Card className="border-orange-200 dark:border-orange-800">
+          <Card className="border-orange-100 bg-gradient-to-br from-white to-orange-50/30 transition-shadow hover:shadow-md dark:border-orange-900/30 dark:from-background dark:to-orange-950/20">
             <CardHeader className="flex flex-row items-center gap-2 pb-2">
-              <Refrigerator className="h-4 w-4 text-orange-500" />
-              <CardTitle className="text-sm font-medium">
-                期限が近い食材
-              </CardTitle>
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/40">
+                <Refrigerator className="h-3.5 w-3.5 text-orange-400" />
+              </div>
+              <CardTitle className="text-sm font-medium">期限が近い食材</CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
                   const status = getExpiryStatus(item.expiry_date);
                   return (
                     <li key={item.id} className="flex items-center justify-between text-sm">
                       <span>{item.name}</span>
-                      <Badge
-                        variant="secondary"
-                        className={cn("text-xs", expiryColors[status])}
-                      >
+                      <Badge variant="outline" className={cn("text-xs", expiryColors[status])}>
                         {getExpiryLabel(item.expiry_date)}
                       </Badge>
                     </li>
@@ -184,20 +180,22 @@ export default function HomePage() {
         </Link>
       )}
 
-      {/* Today's Todos */}
       <Link href="/board/todos">
-        <Card>
+        <Card className="border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 transition-shadow hover:shadow-md dark:border-emerald-900/30 dark:from-background dark:to-emerald-950/20">
           <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <CheckSquare className="h-4 w-4 text-green-500" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40">
+              <CheckSquare className="h-3.5 w-3.5 text-emerald-500" />
+            </div>
             <CardTitle className="text-sm font-medium">今日のToDo</CardTitle>
           </CardHeader>
           <CardContent>
             {todayTodos?.length === 0 ? (
               <p className="text-sm text-muted-foreground">タスクはありません</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 {todayTodos?.map((todo: { id: string; title: string }) => (
-                  <li key={todo.id} className="text-sm">
+                  <li key={todo.id} className="flex items-center gap-2 text-sm">
+                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     {todo.title}
                   </li>
                 ))}
@@ -207,11 +205,12 @@ export default function HomePage() {
         </Card>
       </Link>
 
-      {/* Settlement */}
       <Link href="/money">
-        <Card>
+        <Card className="border-purple-100 bg-gradient-to-br from-white to-purple-50/30 transition-shadow hover:shadow-md dark:border-purple-900/30 dark:from-background dark:to-purple-950/20">
           <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <Wallet className="h-4 w-4 text-purple-500" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/40">
+              <Wallet className="h-3.5 w-3.5 text-purple-500" />
+            </div>
             <CardTitle className="text-sm font-medium">今月の精算</CardTitle>
           </CardHeader>
           <CardContent>
@@ -219,10 +218,10 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground">精算なし</p>
             ) : (
               <div className="flex items-center gap-2 text-sm">
-                <span>{settlement.fromName}</span>
-                <ArrowRight className="h-4 w-4" />
-                <span>{settlement.toName}</span>
-                <span className="ml-auto font-bold">
+                <span className="font-medium">{settlement.fromName}</span>
+                <ArrowRight className="h-4 w-4 text-pink-400" />
+                <span className="font-medium">{settlement.toName}</span>
+                <span className="ml-auto font-bold text-pink-500">
                   {formatYen(settlement.amount)}
                 </span>
               </div>

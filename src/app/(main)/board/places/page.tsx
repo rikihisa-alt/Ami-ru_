@@ -27,7 +27,8 @@ import {
 } from "@/components/ui/sheet";
 import { PLACE_TAGS } from "@/lib/utils/categories";
 import { toast } from "sonner";
-import { Plus, MapPin, ExternalLink, Calendar, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Plus, MapPin, ExternalLink, Trash2 } from "lucide-react";
 
 const statusLabels: Record<string, string> = {
   want_to_go: "行きたい",
@@ -36,9 +37,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  want_to_go: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  candidate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  visited: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  want_to_go: "bg-violet-50 text-violet-500 border-violet-200 dark:bg-violet-950 dark:text-violet-300",
+  candidate: "bg-amber-50 text-amber-500 border-amber-200 dark:bg-amber-950 dark:text-amber-300",
+  visited: "bg-emerald-50 text-emerald-500 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300",
 };
 
 export default function PlacesView() {
@@ -127,6 +128,11 @@ export default function PlacesView() {
             key={s}
             variant={statusFilter === s ? "default" : "outline"}
             size="sm"
+            className={cn(
+              statusFilter === s
+                ? "bg-pink-400 hover:bg-pink-500"
+                : "border-pink-200 text-pink-500 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950"
+            )}
             onClick={() => setStatusFilter(s)}
           >
             {s === "all" ? "すべて" : statusLabels[s]}
@@ -137,13 +143,15 @@ export default function PlacesView() {
       {isLoading ? (
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
           ))}
         </div>
       ) : filteredPlaces?.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-          <MapPin className="h-12 w-12" />
-          <p>スポットはありません</p>
+        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
+            <MapPin className="h-8 w-8 text-pink-300" />
+          </div>
+          <p className="font-medium">スポットはありません</p>
         </div>
       ) : (
         filteredPlaces?.map(
@@ -156,13 +164,13 @@ export default function PlacesView() {
             memo: string | null;
             status: string;
           }) => (
-            <Card key={place.id} className="p-3">
+            <Card key={place.id} className="border-pink-100/60 p-3 dark:border-pink-900/20">
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{place.name}</span>
                     <Badge
-                      variant="secondary"
+                      variant="outline"
                       className={`text-xs ${statusColors[place.status]}`}
                     >
                       {statusLabels[place.status]}
@@ -170,7 +178,7 @@ export default function PlacesView() {
                   </div>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {place.tags?.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
+                      <Badge key={tag} variant="outline" className="text-xs border-pink-200 text-pink-500 dark:border-pink-800 dark:text-pink-300">
                         {PLACE_TAGS.find((t) => t.value === tag)?.label ?? tag}
                       </Badge>
                     ))}
@@ -191,7 +199,7 @@ export default function PlacesView() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-7 w-7 text-pink-400 hover:text-pink-500"
                       asChild
                     >
                       <a
@@ -224,7 +232,7 @@ export default function PlacesView() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-muted-foreground"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-400"
                     onClick={() => {
                       deleteMutation.mutate(place.id);
                       toast.success("削除しました");
@@ -243,14 +251,14 @@ export default function PlacesView() {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-6 w-6 text-white" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-2xl">
+        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
           <SheetHeader>
-            <SheetTitle>スポットを追加</SheetTitle>
+            <SheetTitle className="text-pink-600 dark:text-pink-400">スポットを追加</SheetTitle>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="space-y-2">
@@ -289,7 +297,12 @@ export default function PlacesView() {
                   <Badge
                     key={tag.value}
                     variant={tags.includes(tag.value) ? "default" : "outline"}
-                    className="cursor-pointer"
+                    className={cn(
+                      "cursor-pointer",
+                      tags.includes(tag.value)
+                        ? "bg-pink-400 hover:bg-pink-500"
+                        : "border-pink-200 text-pink-500 hover:bg-pink-50 dark:border-pink-800"
+                    )}
                     onClick={() => toggleTag(tag.value)}
                   >
                     {tag.label}
@@ -306,7 +319,7 @@ export default function PlacesView() {
                 placeholder="メモ"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={addMutation.isPending}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500" disabled={addMutation.isPending}>
               {addMutation.isPending ? "追加中..." : "追加する"}
             </Button>
           </form>

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { formatRelative } from "@/lib/utils/date";
-import { Plus, Pin, Trash2, Eye, MessageSquare } from "lucide-react";
+import { Plus, Pin, Trash2, MessageSquare } from "lucide-react";
 
 export default function BulletinView() {
   const supabase = useSupabase();
@@ -85,13 +85,15 @@ export default function BulletinView() {
       {isLoading ? (
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-20 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
           ))}
         </div>
       ) : posts?.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-          <MessageSquare className="h-12 w-12" />
-          <p>投稿はありません</p>
+        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
+            <MessageSquare className="h-8 w-8 text-pink-300" />
+          </div>
+          <p className="font-medium">投稿はありません</p>
         </div>
       ) : (
         posts?.map(
@@ -108,20 +110,20 @@ export default function BulletinView() {
             return (
               <Card
                 key={post.id}
-                className="p-3"
+                className="border-pink-100/60 p-3 dark:border-pink-900/20"
                 onClick={() => !isRead && handleRead(post.id)}
               >
                 <div className="flex items-start gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       {post.is_pinned && (
-                        <Pin className="h-3 w-3 text-orange-500" />
+                        <Pin className="h-3 w-3 text-pink-400" />
                       )}
                       {post.title && (
                         <span className="font-medium">{post.title}</span>
                       )}
                       {!isRead && (
-                        <Badge className="h-4 text-[10px]">未読</Badge>
+                        <Badge className="h-4 bg-pink-400 text-[10px] text-white">未読</Badge>
                       )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
@@ -146,14 +148,14 @@ export default function BulletinView() {
                     >
                       <Pin
                         className={`h-3 w-3 ${
-                          post.is_pinned ? "text-orange-500" : ""
+                          post.is_pinned ? "text-pink-400" : ""
                         }`}
                       />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-muted-foreground"
+                      className="h-7 w-7 text-muted-foreground hover:text-red-400"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteMutation.mutate(post.id);
@@ -174,14 +176,14 @@ export default function BulletinView() {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-6 w-6 text-white" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-2xl">
+        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
           <SheetHeader>
-            <SheetTitle>投稿する</SheetTitle>
+            <SheetTitle className="text-pink-600 dark:text-pink-400">投稿する</SheetTitle>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="space-y-2">
@@ -201,11 +203,11 @@ export default function BulletinView() {
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="伝えたいことを書いてください"
                 rows={4}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-pink-100 bg-background px-3 py-2 text-sm focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-200 dark:border-pink-900/30"
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={addMutation.isPending}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500" disabled={addMutation.isPending}>
               {addMutation.isPending ? "投稿中..." : "投稿する"}
             </Button>
           </form>

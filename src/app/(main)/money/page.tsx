@@ -50,7 +50,6 @@ export default function MoneyPage() {
 
   const [partner, setPartner] = useState<{ id: string; display_name: string } | null>(null);
 
-  // Form state
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [payerId, setPayerId] = useState(user?.id ?? "");
@@ -149,22 +148,25 @@ export default function MoneyPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">お金</h1>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={prevMonth}>
+          <Wallet className="h-5 w-5 text-pink-400" />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">お金</h1>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="min-w-[100px] text-center text-sm font-medium">
             {formatMonthYear(new Date(year, month))}
           </span>
-          <Button variant="ghost" size="icon" onClick={nextMonth}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={nextMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {/* Settlement Card */}
-      <Card className="border-purple-200 dark:border-purple-800">
+      <Card className="border-purple-100 bg-gradient-to-br from-white to-purple-50/50 dark:border-purple-900/30 dark:from-background dark:to-purple-950/20">
         <CardContent className="pt-4">
           {!settlement || settlement.amount === 0 ? (
             <p className="text-center text-sm text-muted-foreground">
@@ -173,9 +175,9 @@ export default function MoneyPage() {
           ) : (
             <div className="flex items-center justify-center gap-3">
               <span className="font-medium">{settlement.fromName}</span>
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 text-pink-400" />
               <span className="font-medium">{settlement.toName}</span>
-              <span className="text-lg font-bold text-primary">
+              <span className="text-lg font-bold text-pink-500">
                 {formatYen(settlement.amount)}
               </span>
             </div>
@@ -185,11 +187,11 @@ export default function MoneyPage() {
 
       {/* Category Summary */}
       {categorySummary.length > 0 && (
-        <Card>
+        <Card className="border-pink-100/60 dark:border-pink-900/20">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center justify-between text-sm">
               <span>カテゴリ別</span>
-              <span className="text-muted-foreground">
+              <span className="text-pink-400">
                 合計 {formatYen(totalAmount)}
               </span>
             </CardTitle>
@@ -213,13 +215,15 @@ export default function MoneyPage() {
       {isLoading ? (
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
+            <div key={i} className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
           ))}
         </div>
       ) : expenses?.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-          <Wallet className="h-12 w-12" />
-          <p>今月の支出はありません</p>
+        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
+            <Wallet className="h-8 w-8 text-pink-300" />
+          </div>
+          <p className="font-medium">今月の支出はありません</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -234,10 +238,10 @@ export default function MoneyPage() {
               ratio_payer: number;
               memo: string | null;
             }) => (
-              <Card key={expense.id} className="flex items-center gap-3 p-3">
+              <Card key={expense.id} className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="bg-pink-50 text-pink-500 text-xs dark:bg-pink-950 dark:text-pink-300">
                       {getCategoryLabel(EXPENSE_CATEGORIES, expense.category)}
                     </Badge>
                     <span className="font-medium">
@@ -267,7 +271,7 @@ export default function MoneyPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground"
+                  className="h-8 w-8 text-muted-foreground hover:text-red-400"
                   onClick={() => {
                     deleteExpense.mutate(expense.id);
                     toast.success("削除しました");
@@ -286,14 +290,14 @@ export default function MoneyPage() {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-6 w-6 text-white" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-2xl">
+        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
           <SheetHeader>
-            <SheetTitle>支出を記録</SheetTitle>
+            <SheetTitle className="text-pink-600 dark:text-pink-400">支出を記録</SheetTitle>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="space-y-2">
@@ -381,7 +385,7 @@ export default function MoneyPage() {
                   step="5"
                   value={ratioPayer}
                   onChange={(e) => setRatioPayer(parseInt(e.target.value, 10))}
-                  className="w-full"
+                  className="w-full accent-pink-400"
                 />
               </div>
             )}
@@ -398,7 +402,7 @@ export default function MoneyPage() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500"
               disabled={addExpense.isPending}
             >
               {addExpense.isPending ? "記録中..." : "記録する"}

@@ -66,14 +66,14 @@ export function PantryAddForm() {
       <SheetTrigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg"
+          className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="h-6 w-6 text-white" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-2xl">
+      <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
         <SheetHeader>
-          <SheetTitle>食材を追加</SheetTitle>
+          <SheetTitle className="text-pink-600 dark:text-pink-400">食材を追加</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-2">
@@ -137,7 +137,7 @@ export function PantryAddForm() {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500"
             disabled={addItem.isPending}
           >
             {addItem.isPending ? "追加中..." : "追加する"}
