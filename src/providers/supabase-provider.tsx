@@ -28,52 +28,29 @@ const SupabaseContext = createContext<SupabaseContextType | undefined>(
   undefined
 );
 
+const MOCK_USER = {
+  id: "mock-user-001",
+  email: "demo@ami-ru.app",
+  app_metadata: {},
+  user_metadata: { full_name: "デモユーザー" },
+  aud: "authenticated",
+  created_at: new Date().toISOString(),
+} as unknown as User;
+
+const MOCK_PROFILE: Profile = {
+  id: "mock-user-001",
+  display_name: "デモユーザー",
+  avatar_url: null,
+  pair_id: "mock-pair-001",
+};
+
 export function SupabaseProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        setProfile(data);
-      }
-
-      setIsLoading(false);
-    };
-
-    getUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(data);
-      } else {
-        setProfile(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+  // Dev mode: use mock user/profile, skip Supabase auth
+  const user = MOCK_USER;
+  const profile = MOCK_PROFILE;
+  const isLoading = false;
 
   return (
     <SupabaseContext.Provider value={{ supabase, user, profile, isLoading }}>
