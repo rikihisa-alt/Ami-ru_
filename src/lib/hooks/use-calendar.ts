@@ -41,6 +41,8 @@ export function useAddCalendarEvent() {
       end_at?: string;
       location?: string;
       source_place_id?: string;
+      color?: string;
+      assignee_id?: string | null;
     }) =>
       addCalendarEvent(supabase, {
         ...event,

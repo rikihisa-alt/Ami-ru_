@@ -12,12 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { PrismButton } from "@/components/ui/prism-button";
 import { PANTRY_CATEGORIES } from "@/lib/utils/categories";
-import { ShoppingCart, Package, Refrigerator } from "lucide-react";
+import { ShoppingCart, Refrigerator } from "lucide-react";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function PantryPage() {
-  const { data: items, isLoading } = usePantryItems();
+  const { data: items } = usePantryItems();
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("expiry");
 
@@ -48,23 +49,23 @@ export default function PantryPage() {
     );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Refrigerator className="h-5 w-5 text-pink-400" />
-          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">冷蔵庫</h1>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between motion-safe:animate-prism-fade-up">
+        <div className="flex items-center gap-2.5">
+          <Refrigerator className="h-5 w-5 text-orange-400" />
+          <h1 className="text-xl font-bold tracking-tight text-foreground">冷蔵庫</h1>
         </div>
-        <Button variant="outline" size="sm" className="border-pink-200 text-pink-500 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950" asChild>
-          <Link href="/pantry/shopping">
-            <ShoppingCart className="mr-1 h-4 w-4" />
+        <Link href="/pantry/shopping">
+          <PrismButton variant="secondary" size="sm">
+            <ShoppingCart className="mr-1.5 h-4 w-4" />
             買い物リスト
-          </Link>
-        </Button>
+          </PrismButton>
+        </Link>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 motion-safe:animate-prism-fade-up" style={{ animationDelay: "50ms" }}>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-[120px] rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -78,7 +79,7 @@ export default function PantryPage() {
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[120px]">
+          <SelectTrigger className="w-[120px] rounded-xl">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -89,23 +90,13 @@ export default function PantryPage() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30"
-            />
-          ))}
-        </div>
-      ) : filteredItems?.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
-            <Package className="h-8 w-8 text-pink-300" />
-          </div>
-          <p className="font-medium">食材がありません</p>
-          <p className="text-sm">右下の＋ボタンから追加しましょう</p>
-        </div>
+      {!filteredItems?.length ? (
+        <EmptyState
+          icon={Refrigerator}
+          title="冷蔵庫の中身を管理しよう"
+          description="食材ロスを減らして節約に"
+          action={{ label: "食材を追加", onClick: () => document.querySelector<HTMLButtonElement>(".fab-trigger")?.click() }}
+        />
       ) : (
         <div className="space-y-2">
           {filteredItems?.map(

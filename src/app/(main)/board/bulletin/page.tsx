@@ -1,25 +1,36 @@
 "use client";
 
-import { useState } from "react";
+export const dynamic = "force-dynamic";
+
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase, useUser } from "@/providers/supabase-provider";
-import { postKeys, getPosts, addPost, updatePost, markPostAsRead, deletePost } from "@/lib/queries/posts";
-import { useRealtimeSubscription } from "@/lib/hooks/use-realtime";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  postKeys,
+  getPosts,
+  updatePost,
+  markPostAsRead,
+  deletePost,
+} from "@/lib/queries/posts";
+import { useRealtimeSubscription } from "@/lib/hooks/use-realtime";
+import { PostCard } from "@/components/board/post-card";
+import { PostFilterBar } from "@/components/board/post-filter-bar";
+import { PostForm } from "@/components/board/post-form";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { toast } from "sonner";
-import { formatRelative } from "@/lib/utils/date";
-import { Plus, Pin, Trash2, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+
+type Post = {
+  id: string;
+  title: string | null;
+  body: string;
+  tags: string[];
+  is_pinned: boolean;
+  read_by: string[];
+  created_by: string;
+  created_at: string;
+};
 
 export default function BulletinView() {
   const supabase = useSupabase();
@@ -30,189 +41,246 @@ export default function BulletinView() {
 
   useRealtimeSubscription("posts", queryKey, pairId);
 
-  const { data: posts, isLoading } = useQuery({
+  /* ── Data ── */
+  const { data: posts } = useQuery({
     queryKey,
     queryFn: () => getPosts(supabase),
     enabled: !!pairId,
   });
 
-  const addMutation = useMutation({
-    mutationFn: (post: { title?: string; body: string }) =>
-      addPost(supabase, { ...post, pair_id: pairId!, created_by: user!.id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
-  });
+  /* ── Partner name ── */
+  const [partnerName, setPartnerName] = useState("パートナー");
 
+  useEffect(() => {
+    if (!pairId || !user) return;
+    supabase
+      .from("profiles")
+      .select("id, display_name")
+      .eq("pair_id", pairId)
+      .neq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setPartnerName(data.display_name);
+      });
+  }, [pairId, user, supabase]);
+
+  /* ── Filter state ── */
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
+
+  /* ── Form state ── */
+  const [formOpen, setFormOpen] = useState(false);
+  const [editPost, setEditPost] = useState<{
+    id: string;
+    title: string | null;
+    body: string;
+    tags: string[];
+  } | null>(null);
+
+  /* ── Delete state ── */
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  /* ── Mutations ── */
   const pinMutation = useMutation({
-    mutationFn: ({ postId, isPinned }: { postId: string; isPinned: boolean }) =>
-      updatePost(supabase, postId, { is_pinned: isPinned }),
+    mutationFn: ({
+      postId,
+      isPinned,
+    }: {
+      postId: string;
+      isPinned: boolean;
+    }) => updatePost(supabase, postId, { is_pinned: isPinned }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (postId: string) => deletePost(supabase, postId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast.success("削除しました");
+    },
+    onError: () => {
+      // silent in demo mode
+    },
   });
 
-  const [formOpen, setFormOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!body.trim()) return;
-    try {
-      await addMutation.mutateAsync({
-        title: title.trim() || undefined,
-        body: body.trim(),
-      });
-      toast.success("投稿しました");
-      setTitle("");
-      setBody("");
-      setFormOpen(false);
-    } catch {
-      toast.error("投稿に失敗しました");
-    }
-  };
-
-  const handleRead = async (postId: string) => {
+  /* ── Mark as read ── */
+  const handleMarkRead = async (postId: string) => {
     if (!user) return;
     await markPostAsRead(supabase, postId, user.id);
     queryClient.invalidateQueries({ queryKey });
   };
 
+  /* ── Filtered & sorted posts ── */
+  const filteredPosts = useMemo(() => {
+    if (!posts) return [];
+    let result = posts as Post[];
+
+    // Search filter (title + body)
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (p) =>
+          (p.title?.toLowerCase().includes(q) ?? false) ||
+          p.body.toLowerCase().includes(q)
+      );
+    }
+
+    // Tag filter
+    if (activeTag) {
+      result = result.filter((p) => p.tags?.includes(activeTag));
+    }
+
+    // Pin-only filter
+    if (showPinnedOnly) {
+      result = result.filter((p) => p.is_pinned);
+    }
+
+    // Sort: pinned first, then newest
+    return [...result].sort((a, b) => {
+      if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+  }, [posts, searchQuery, activeTag, showPinnedOnly]);
+
+  /* ── Unread count ── */
+  const unreadCount = useMemo(() => {
+    if (!posts || !user) return 0;
+    return (posts as Post[]).filter(
+      (p) => !p.read_by?.includes(user.id)
+    ).length;
+  }, [posts, user]);
+
+  /* ── Handlers ── */
+  const handleEdit = (post: {
+    id: string;
+    title: string | null;
+    body: string;
+    tags: string[];
+  }) => {
+    setEditPost(post);
+  };
+
+  const handleEditOpenChange = (open: boolean) => {
+    if (!open) setEditPost(null);
+  };
+
+  const handleDelete = (postId: string) => {
+    setDeleteTarget(postId);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTarget) {
+      deleteMutation.mutate(deleteTarget);
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleTogglePin = (postId: string, isPinned: boolean) => {
+    pinMutation.mutate({ postId, isPinned });
+    toast.success(isPinned ? "ピン留めしました" : "ピン留めを解除しました");
+  };
+
   return (
-    <div className="mt-4 space-y-3">
-      {isLoading ? (
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
-          ))}
-        </div>
-      ) : posts?.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
-            <MessageSquare className="h-8 w-8 text-pink-300" />
-          </div>
-          <p className="font-medium">投稿はありません</p>
-        </div>
-      ) : (
-        posts?.map(
-          (post: {
-            id: string;
-            title: string | null;
-            body: string;
-            is_pinned: boolean;
-            read_by: string[];
-            created_by: string;
-            created_at: string;
-          }) => {
-            const isRead = post.read_by?.includes(user?.id ?? "");
-            return (
-              <Card
-                key={post.id}
-                className="border-pink-100/60 p-3 dark:border-pink-900/20"
-                onClick={() => !isRead && handleRead(post.id)}
-              >
-                <div className="flex items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      {post.is_pinned && (
-                        <Pin className="h-3 w-3 text-pink-400" />
-                      )}
-                      {post.title && (
-                        <span className="font-medium">{post.title}</span>
-                      )}
-                      {!isRead && (
-                        <Badge className="h-4 bg-pink-400 text-[10px] text-white">未読</Badge>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                      {post.body}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatRelative(post.created_at)}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        pinMutation.mutate({
-                          postId: post.id,
-                          isPinned: !post.is_pinned,
-                        });
-                      }}
-                    >
-                      <Pin
-                        className={`h-3 w-3 ${
-                          post.is_pinned ? "text-pink-400" : ""
-                        }`}
-                      />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-red-400"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMutation.mutate(post.id);
-                        toast.success("削除しました");
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            );
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 motion-safe:animate-prism-fade-up">
+        <MessageSquare className="h-5 w-5 text-violet-400" />
+        <h1 className="text-xl font-bold tracking-tight text-foreground">
+          掲示板
+        </h1>
+      </div>
+
+      {/* Filter bar */}
+      <PostFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        activeTag={activeTag}
+        onTagChange={setActiveTag}
+        showPinnedOnly={showPinnedOnly}
+        onPinnedToggle={() => setShowPinnedOnly((v) => !v)}
+        unreadCount={unreadCount}
+      />
+
+      {/* Post list */}
+      {filteredPosts.length === 0 ? (
+        <EmptyState
+          icon={MessageSquare}
+          title={
+            searchQuery || activeTag || showPinnedOnly
+              ? "該当する投稿がありません"
+              : "投稿はまだありません"
           }
-        )
+          description={
+            searchQuery || activeTag || showPinnedOnly
+              ? "フィルターを変更してみてください"
+              : "最初の投稿を作成してみましょう"
+          }
+          action={
+            !searchQuery && !activeTag && !showPinnedOnly
+              ? {
+                  label: "投稿する",
+                  onClick: () => setFormOpen(true),
+                }
+              : undefined
+          }
+          iconColor="text-violet-400/50"
+        />
+      ) : (
+        <div>
+          {filteredPosts.map((post, index) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              isUnread={!post.read_by?.includes(user?.id ?? "")}
+              userId={user?.id ?? ""}
+              partnerName={partnerName}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onTogglePin={handleTogglePin}
+              onMarkRead={handleMarkRead}
+              animationIndex={index}
+            />
+          ))}
+          {/* Timeline end cap */}
+          <div className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <div className="h-2 w-2 rounded-full bg-border" />
+            </div>
+          </div>
+        </div>
       )}
 
-      <Sheet open={formOpen} onOpenChange={setFormOpen}>
-        <SheetTrigger asChild>
-          <Button
-            size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
-          >
-            <Plus className="h-6 w-6 text-white" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
-          <SheetHeader>
-            <SheetTitle className="text-pink-600 dark:text-pink-400">投稿する</SheetTitle>
-          </SheetHeader>
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="postTitle">タイトル</Label>
-              <Input
-                id="postTitle"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="タイトル（任意）"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="postBody">本文 *</Label>
-              <textarea
-                id="postBody"
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                placeholder="伝えたいことを書いてください"
-                rows={4}
-                className="w-full rounded-xl border border-pink-100 bg-background px-3 py-2 text-sm focus:border-pink-300 focus:outline-none focus:ring-2 focus:ring-pink-200 dark:border-pink-900/30"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500" disabled={addMutation.isPending}>
-              {addMutation.isPending ? "投稿中..." : "投稿する"}
-            </Button>
-          </form>
-        </SheetContent>
-      </Sheet>
+      {/* Create form (FAB) */}
+      <PostForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+      />
+
+      {/* Edit form (no FAB) */}
+      {editPost && (
+        <PostForm
+          editPost={editPost}
+          open={!!editPost}
+          onOpenChange={handleEditOpenChange}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="投稿を削除しますか？"
+        description="この操作は取り消せません。コメントも一緒に削除されます。"
+        confirmLabel="削除する"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

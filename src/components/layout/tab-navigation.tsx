@@ -17,8 +17,8 @@ export function TabNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-pink-100 bg-white/95 backdrop-blur dark:border-pink-900/30 dark:bg-background/95">
-      <div className="mx-auto flex h-16 max-w-md items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-elevated lg:hidden">
+      <div className="flex h-16 items-center justify-around px-2">
         {tabs.map((tab) => {
           const isActive =
             pathname === tab.href || pathname.startsWith(tab.href + "/");
@@ -27,19 +27,18 @@ export function TabNavigation() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                "flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-all",
+                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[11px] font-medium",
+                "transition-all duration-200",
                 isActive
-                  ? "bg-pink-50 text-pink-500 dark:bg-pink-950/50 dark:text-pink-400"
-                  : "text-gray-400 hover:text-pink-400 dark:text-gray-500"
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <tab.icon
-                className={cn(
-                  "h-5 w-5 transition-transform",
-                  isActive && "scale-110"
-                )}
-              />
+              <tab.icon className="h-5 w-5" />
               <span>{tab.label}</span>
+              {isActive && (
+                <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-primary" />
+              )}
             </Link>
           );
         })}

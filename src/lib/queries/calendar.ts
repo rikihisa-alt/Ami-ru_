@@ -50,6 +50,8 @@ export async function addCalendarEvent(
     end_at?: string;
     location?: string;
     source_place_id?: string;
+    color?: string;
+    assignee_id?: string | null;
     created_by: string;
   }
 ) {
@@ -72,6 +74,8 @@ export async function updateCalendarEvent(
     start_at?: string;
     end_at?: string | null;
     location?: string | null;
+    color?: string;
+    assignee_id?: string | null;
   }
 ) {
   const { error } = await supabase

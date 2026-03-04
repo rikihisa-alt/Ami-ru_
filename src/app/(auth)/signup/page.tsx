@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SignupPage() {
@@ -54,6 +55,9 @@ export default function SignupPage() {
   return (
     <Card>
       <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+          <Heart className="h-5 w-5 text-rose-300" />
+        </div>
         <CardTitle className="text-2xl">新規登録</CardTitle>
         <CardDescription>Ami-ruを始めましょう</CardDescription>
       </CardHeader>

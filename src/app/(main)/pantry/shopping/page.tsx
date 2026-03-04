@@ -10,16 +10,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
 import { Check, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 export default function ShoppingPage() {
-  const { data: items, isLoading } = useShoppingItems();
+  const { data: items } = useShoppingItems();
   const addItem = useAddShoppingItem();
   const toggleItem = useToggleShoppingItem();
   const deleteItem = useDeleteShoppingItem();
   const [newItemName, setNewItemName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export default function ShoppingPage() {
       await addItem.mutateAsync({ name: newItemName.trim() });
       setNewItemName("");
     } catch {
-      toast.error("追加に失敗しました");
+      // silent in demo mode
     }
   };
 
@@ -44,8 +46,8 @@ export default function ShoppingPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <ShoppingCart className="h-5 w-5 text-pink-400" />
-        <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">買い物リスト</h1>
+        <ShoppingCart className="h-5 w-5 text-orange-400" />
+        <h1 className="text-xl font-bold text-foreground">買い物リスト</h1>
       </div>
 
       <form onSubmit={handleAdd} className="flex gap-2">
@@ -58,26 +60,19 @@ export default function ShoppingPage() {
         <Button
           type="submit"
           size="icon"
-          className="bg-gradient-to-br from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500"
+          className=""
           disabled={addItem.isPending}
         >
           <Plus className="h-4 w-4 text-white" />
         </Button>
       </form>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-12 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
-          ))}
-        </div>
-      ) : items?.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
-            <ShoppingCart className="h-8 w-8 text-pink-300" />
-          </div>
-          <p className="font-medium">買い物リストは空です</p>
-        </div>
+      {!items?.length ? (
+        <EmptyState
+          icon={ShoppingCart}
+          title="買い物リストを共有しよう"
+          description="買い忘れ防止に"
+        />
       ) : (
         <div className="space-y-2">
           {items?.map(
@@ -89,7 +84,7 @@ export default function ShoppingPage() {
             }) => (
               <Card
                 key={item.id}
-                className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20"
+                className="flex items-center gap-3 p-3"
               >
                 <Button
                   variant="ghost"
@@ -98,7 +93,7 @@ export default function ShoppingPage() {
                     "h-8 w-8 shrink-0 rounded-full border-2",
                     item.is_purchased
                       ? "border-emerald-400 bg-emerald-400 text-white"
-                      : "border-pink-300/50 hover:border-pink-400"
+                      : "border-border hover:border-emerald-400"
                   )}
                   onClick={() => handleToggle(item.id, item.is_purchased)}
                 >
@@ -121,7 +116,7 @@ export default function ShoppingPage() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 shrink-0 text-muted-foreground hover:text-red-400"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => setDeleteTarget(item.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -130,6 +125,15 @@ export default function ShoppingPage() {
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="このアイテムを削除しますか？"
+        onConfirm={() => {
+          if (deleteTarget) handleDelete(deleteTarget);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

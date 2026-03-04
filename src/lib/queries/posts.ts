@@ -21,6 +21,7 @@ export async function addPost(
     title?: string;
     body: string;
     image_url?: string;
+    tags?: string[];
     created_by: string;
   }
 ) {
@@ -40,6 +41,7 @@ export async function updatePost(
     title?: string | null;
     body?: string;
     is_pinned?: boolean;
+    tags?: string[];
   }
 ) {
   const { error } = await supabase

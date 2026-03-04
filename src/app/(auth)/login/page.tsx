@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Heart } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -57,6 +58,9 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+          <Heart className="h-5 w-5 text-rose-300" />
+        </div>
         <CardTitle className="text-2xl">Ami-ru</CardTitle>
         <CardDescription>ふたりの暮らしをもっとスムーズに</CardDescription>
       </CardHeader>

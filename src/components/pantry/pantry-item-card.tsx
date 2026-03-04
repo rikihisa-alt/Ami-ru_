@@ -22,10 +22,10 @@ type PantryItemCardProps = {
 };
 
 const expiryColors = {
-  expired: "bg-red-50 text-red-400 border-red-200 dark:bg-red-950 dark:text-red-300",
-  today: "bg-amber-50 text-amber-500 border-amber-200 dark:bg-amber-950 dark:text-amber-300",
-  soon: "bg-orange-50 text-orange-400 border-orange-200 dark:bg-orange-950 dark:text-orange-300",
-  ok: "bg-emerald-50 text-emerald-500 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300",
+  expired: "bg-red-50 text-red-500 border-red-200 dark:bg-red-950/40 dark:text-red-300",
+  today: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300",
+  soon: "bg-orange-50 text-orange-500 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300",
+  ok: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300",
   none: "",
 };
 
@@ -51,7 +51,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
   };
 
   return (
-    <Card className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20">
+    <Card className="flex items-center gap-3 p-3">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate font-medium">{item.name}</span>
@@ -63,7 +63,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           {item.category && (
-            <Badge variant="secondary" className="bg-pink-50 text-pink-500 text-xs dark:bg-pink-950 dark:text-pink-300">
+            <Badge variant="secondary" className="text-xs">
               {getCategoryLabel(PANTRY_CATEGORIES, item.category)}
             </Badge>
           )}
@@ -81,7 +81,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-pink-400 hover:bg-pink-50 hover:text-pink-500 dark:hover:bg-pink-950"
+          className="h-8 w-8 text-muted-foreground hover:text-orange-500"
           onClick={handleMoveToShopping}
           title="買い物リストへ"
         >
@@ -90,7 +90,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-emerald-400 hover:bg-emerald-50 hover:text-emerald-500 dark:hover:bg-emerald-950"
+          className="h-8 w-8 text-muted-foreground hover:text-emerald-500"
           onClick={handleConsume}
           title="使い切り"
         >

@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSupabase, useUser } from "@/providers/supabase-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PrismCard } from "@/components/ui/prism-card";
 import { getExpiryStatus, getExpiryLabel, formatDateTime } from "@/lib/utils/date";
 import { formatYen } from "@/lib/utils/currency";
 import { calculateSettlement } from "@/lib/utils/settlement";
@@ -14,22 +14,52 @@ import {
   CheckSquare,
   Wallet,
   ArrowRight,
-  Sparkles,
+  Sun,
+  Cloud,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
+import { EmotionSelector } from "@/components/emotion/emotion-selector";
+import { ThanksButton } from "@/components/emotion/thanks-button";
+
+type TimeSlot = "morning" | "afternoon" | "evening";
+
+function getTimeSlot(): TimeSlot {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 11) return "morning";
+  if (hour >= 11 && hour < 17) return "afternoon";
+  return "evening";
+}
+
+const GREETINGS: Record<TimeSlot, { text: string; icon: typeof Sun }> = {
+  morning: { text: "おはよう", icon: Sun },
+  afternoon: { text: "おつかれさま", icon: Cloud },
+  evening: { text: "おかえり", icon: Moon },
+};
 
 const expiryColors = {
-  expired: "bg-red-50 text-red-400 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
-  today: "bg-amber-50 text-amber-500 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
-  soon: "bg-orange-50 text-orange-400 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
-  ok: "bg-emerald-50 text-emerald-500 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
+  expired: "bg-red-50 text-red-500 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
+  today: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+  soon: "bg-orange-50 text-orange-500 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
+  ok: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
   none: "",
 };
+
+function SectionIcon({ icon: Icon, color }: { icon: typeof Calendar; color: string }) {
+  return (
+    <div className={cn("flex h-8 w-8 items-center justify-center rounded-xl", color)}>
+      <Icon className="h-4 w-4" />
+    </div>
+  );
+}
 
 export default function HomePage() {
   const supabase = useSupabase();
   const { user, profile } = useUser();
   const pairId = profile?.pair_id;
+  const timeSlot = getTimeSlot();
+  const greeting = GREETINGS[timeSlot];
+  const GreetingIcon = greeting.icon;
 
   const { data: todayEvents } = useQuery({
     queryKey: ["home", "events", pairId],
@@ -116,119 +146,142 @@ export default function HomePage() {
     enabled: !!pairId && !!user,
   });
 
+  const EventsCard = (idx: number) => (
+    <Link href="/calendar" key="events">
+      <PrismCard hoverable animationIndex={idx}>
+        <div className="flex items-center gap-2.5 pb-2">
+          <SectionIcon icon={Calendar} color="bg-violet-100/80 text-violet-500 dark:bg-violet-900/30" />
+          <p className="text-sm font-semibold">今日の予定</p>
+        </div>
+        {todayEvents?.length === 0 ? (
+          <p className="text-sm text-muted-foreground">予定はありません</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {todayEvents?.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => (
+              <li key={event.id} className="flex items-center gap-2 text-sm">
+                <Badge variant="secondary" className="rounded-full text-xs">
+                  {event.is_all_day ? "終日" : formatDateTime(event.start_at).split(" ")[1]}
+                </Badge>
+                <span>{event.title}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </PrismCard>
+    </Link>
+  );
+
+  const ExpiringCard = (idx: number) =>
+    expiringItems && expiringItems.length > 0 ? (
+      <Link href="/pantry" key="expiring">
+        <PrismCard hoverable animationIndex={idx}>
+          <div className="flex items-center gap-2.5 pb-2">
+            <SectionIcon icon={Refrigerator} color="bg-orange-100/80 text-orange-500 dark:bg-orange-900/30" />
+            <p className="text-sm font-semibold">期限が近い食材</p>
+          </div>
+          <ul className="space-y-1.5">
+            {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
+              const status = getExpiryStatus(item.expiry_date);
+              return (
+                <li key={item.id} className="flex items-center justify-between text-sm">
+                  <span>{item.name}</span>
+                  <Badge variant="outline" className={cn("rounded-full text-xs", expiryColors[status])}>
+                    {getExpiryLabel(item.expiry_date)}
+                  </Badge>
+                </li>
+              );
+            })}
+          </ul>
+        </PrismCard>
+      </Link>
+    ) : null;
+
+  const TodosCard = (idx: number) => (
+    <Link href="/board/todos" key="todos">
+      <PrismCard hoverable animationIndex={idx}>
+        <div className="flex items-center gap-2.5 pb-2">
+          <SectionIcon icon={CheckSquare} color="bg-teal-100/80 text-teal-500 dark:bg-teal-900/30" />
+          <p className="text-sm font-semibold">今日のToDo</p>
+        </div>
+        {todayTodos?.length === 0 ? (
+          <p className="text-sm text-muted-foreground">タスクはありません</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {todayTodos?.map((todo: { id: string; title: string }) => (
+              <li key={todo.id} className="flex items-center gap-2 text-sm">
+                <div className="h-1.5 w-1.5 rounded-full bg-teal-400" />
+                {todo.title}
+              </li>
+            ))}
+          </ul>
+        )}
+      </PrismCard>
+    </Link>
+  );
+
+  const SettlementCard = (idx: number) => (
+    <Link href="/money" key="settlement">
+      <PrismCard hoverable animationIndex={idx}>
+        <div className="flex items-center gap-2.5 pb-2">
+          <SectionIcon icon={Wallet} color="bg-sky-100/80 text-sky-500 dark:bg-sky-900/30" />
+          <p className="text-sm font-semibold">今月の精算</p>
+        </div>
+        {!settlement || settlement.amount === 0 ? (
+          <p className="text-sm text-muted-foreground">精算なし</p>
+        ) : (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-medium">{settlement.fromName}</span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{settlement.toName}</span>
+            <span className="ml-auto font-bold text-primary">
+              {formatYen(settlement.amount)}
+            </span>
+          </div>
+        )}
+      </PrismCard>
+    </Link>
+  );
+
+  const cardFactories = (() => {
+    switch (timeSlot) {
+      case "morning":
+        return [EventsCard, ExpiringCard, TodosCard, SettlementCard];
+      case "afternoon":
+        return [TodosCard, ExpiringCard, SettlementCard, EventsCard];
+      case "evening":
+        return [SettlementCard, EventsCard, TodosCard, ExpiringCard];
+    }
+  })();
+
+  let idx = 0;
+  const orderedCards = cardFactories
+    .map((factory) => {
+      const card = factory(idx);
+      if (card) idx++;
+      return card;
+    })
+    .filter(Boolean);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-pink-400" />
-        <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">
-          {profile?.display_name || "ゲスト"}さん
+    <div className="space-y-6">
+      {/* Greeting */}
+      <div className="flex items-center gap-2.5 motion-safe:animate-prism-fade-up">
+        <GreetingIcon className="h-5 w-5 text-amber-400" />
+        <h1 className="text-xl font-bold tracking-tight text-foreground">
+          {profile?.display_name || "ゲスト"}さん、{greeting.text}
         </h1>
       </div>
 
-      <Link href="/calendar">
-        <Card className="border-pink-100 bg-gradient-to-br from-white to-violet-50/50 transition-shadow hover:shadow-md dark:border-pink-900/30 dark:from-background dark:to-violet-950/20">
-          <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/40">
-              <Calendar className="h-3.5 w-3.5 text-violet-500" />
-            </div>
-            <CardTitle className="text-sm font-medium">今日の予定</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todayEvents?.length === 0 ? (
-              <p className="text-sm text-muted-foreground">予定はありません</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {todayEvents?.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => (
-                  <li key={event.id} className="flex items-center gap-2 text-sm">
-                    <Badge variant="secondary" className="bg-violet-50 text-violet-500 text-xs dark:bg-violet-900/30 dark:text-violet-300">
-                      {event.is_all_day ? "終日" : formatDateTime(event.start_at).split(" ")[1]}
-                    </Badge>
-                    <span>{event.title}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </Link>
+      {/* Emotion module */}
+      <div className="space-y-3">
+        <EmotionSelector />
+        <ThanksButton />
+      </div>
 
-      {expiringItems && expiringItems.length > 0 && (
-        <Link href="/pantry">
-          <Card className="border-orange-100 bg-gradient-to-br from-white to-orange-50/30 transition-shadow hover:shadow-md dark:border-orange-900/30 dark:from-background dark:to-orange-950/20">
-            <CardHeader className="flex flex-row items-center gap-2 pb-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/40">
-                <Refrigerator className="h-3.5 w-3.5 text-orange-400" />
-              </div>
-              <CardTitle className="text-sm font-medium">期限が近い食材</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1.5">
-                {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
-                  const status = getExpiryStatus(item.expiry_date);
-                  return (
-                    <li key={item.id} className="flex items-center justify-between text-sm">
-                      <span>{item.name}</span>
-                      <Badge variant="outline" className={cn("text-xs", expiryColors[status])}>
-                        {getExpiryLabel(item.expiry_date)}
-                      </Badge>
-                    </li>
-                  );
-                })}
-              </ul>
-            </CardContent>
-          </Card>
-        </Link>
-      )}
-
-      <Link href="/board/todos">
-        <Card className="border-emerald-100 bg-gradient-to-br from-white to-emerald-50/30 transition-shadow hover:shadow-md dark:border-emerald-900/30 dark:from-background dark:to-emerald-950/20">
-          <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/40">
-              <CheckSquare className="h-3.5 w-3.5 text-emerald-500" />
-            </div>
-            <CardTitle className="text-sm font-medium">今日のToDo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todayTodos?.length === 0 ? (
-              <p className="text-sm text-muted-foreground">タスクはありません</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {todayTodos?.map((todo: { id: string; title: string }) => (
-                  <li key={todo.id} className="flex items-center gap-2 text-sm">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    {todo.title}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </Link>
-
-      <Link href="/money">
-        <Card className="border-purple-100 bg-gradient-to-br from-white to-purple-50/30 transition-shadow hover:shadow-md dark:border-purple-900/30 dark:from-background dark:to-purple-950/20">
-          <CardHeader className="flex flex-row items-center gap-2 pb-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/40">
-              <Wallet className="h-3.5 w-3.5 text-purple-500" />
-            </div>
-            <CardTitle className="text-sm font-medium">今月の精算</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!settlement || settlement.amount === 0 ? (
-              <p className="text-sm text-muted-foreground">精算なし</p>
-            ) : (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium">{settlement.fromName}</span>
-                <ArrowRight className="h-4 w-4 text-pink-400" />
-                <span className="font-medium">{settlement.toName}</span>
-                <span className="ml-auto font-bold text-pink-500">
-                  {formatYen(settlement.amount)}
-                </span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </Link>
+      {/* Info cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {orderedCards}
+      </div>
     </div>
   );
 }

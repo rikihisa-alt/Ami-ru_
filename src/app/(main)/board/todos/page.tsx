@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { formatDate } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";
 import { Plus, Check, Trash2, CheckSquare, User } from "lucide-react";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 export default function TodosView() {
   const supabase = useSupabase();
@@ -38,7 +40,7 @@ export default function TodosView() {
 
   useRealtimeSubscription("todos", queryKey, pairId);
 
-  const { data: todos, isLoading } = useQuery({
+  const { data: todos } = useQuery({
     queryKey,
     queryFn: () => getActiveTodos(supabase),
     enabled: !!pairId,
@@ -90,6 +92,7 @@ export default function TodosView() {
   const [dueDate, setDueDate] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +109,7 @@ export default function TodosView() {
       setAssigneeId("");
       setFormOpen(false);
     } catch {
-      toast.error("追加に失敗しました");
+      // silent in demo mode
     }
   };
 
@@ -126,11 +129,6 @@ export default function TodosView() {
             key={f}
             variant={filter === f ? "default" : "outline"}
             size="sm"
-            className={cn(
-              filter === f
-                ? "bg-pink-400 hover:bg-pink-500"
-                : "border-pink-200 text-pink-500 hover:bg-pink-50 dark:border-pink-800 dark:hover:bg-pink-950"
-            )}
             onClick={() => setFilter(f)}
           >
             {f === "all" ? "すべて" : f === "today" ? "今日" : f === "mine" ? "自分" : "相手"}
@@ -138,19 +136,13 @@ export default function TodosView() {
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-14 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30" />
-          ))}
-        </div>
-      ) : filteredTodos?.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
-            <CheckSquare className="h-8 w-8 text-pink-300" />
-          </div>
-          <p className="font-medium">タスクはありません</p>
-        </div>
+      {!filteredTodos?.length ? (
+        <EmptyState
+          icon={CheckSquare}
+          title="ふたりのやることを管理しよう"
+          description="忘れがちな家事もリスト化"
+          action={{ label: "タスクを追加", onClick: () => setFormOpen(true) }}
+        />
       ) : (
         filteredTodos?.map(
           (todo: {
@@ -163,11 +155,11 @@ export default function TodosView() {
           }) => {
             const isOverdue = todo.due_date && todo.due_date < today;
             return (
-              <Card key={todo.id} className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20">
+              <Card key={todo.id} className="flex items-center gap-3 p-3">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 rounded-full border-2 border-pink-300/50 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                  className="h-8 w-8 shrink-0 rounded-full border-2 border-border hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950"
                   onClick={() =>
                     toggleMutation.mutate({ todoId: todo.id, status: "done" })
                   }
@@ -183,8 +175,8 @@ export default function TodosView() {
                         className={cn(
                           "text-xs",
                           isOverdue
-                            ? "bg-red-50 text-red-400 border-red-200 dark:bg-red-950 dark:text-red-300"
-                            : "bg-violet-50 text-violet-500 border-violet-200 dark:bg-violet-950 dark:text-violet-300"
+                            ? "bg-red-50 text-red-500 border-red-200 dark:bg-red-950/40 dark:text-red-300"
+                            : "bg-violet-50 text-violet-500 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300"
                         )}
                       >
                         {formatDate(todo.due_date)}
@@ -203,11 +195,8 @@ export default function TodosView() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-400"
-                  onClick={() => {
-                    deleteMutation.mutate(todo.id);
-                    toast.success("削除しました");
-                  }}
+                  className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => setDeleteTarget(todo.id)}
                 >
                   <Trash2 className="h-3 w-3" />
                 </Button>
@@ -221,14 +210,14 @@ export default function TodosView() {
         <SheetTrigger asChild>
           <Button
             size="icon"
-            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 shadow-lg shadow-pink-200/50 hover:from-pink-500 hover:to-purple-500 dark:shadow-pink-900/30"
+            className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg lg:bottom-8"
           >
-            <Plus className="h-6 w-6 text-white" />
+            <Plus className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="bottom" className="mx-auto max-w-md rounded-t-3xl border-t-pink-100 dark:border-t-pink-900/30">
+        <SheetContent side="bottom" className="mx-auto max-w-lg rounded-t-2xl">
           <SheetHeader>
-            <SheetTitle className="text-pink-600 dark:text-pink-400">タスクを追加</SheetTitle>
+            <SheetTitle>タスクを追加</SheetTitle>
           </SheetHeader>
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div className="space-y-2">
@@ -272,12 +261,25 @@ export default function TodosView() {
                 </Select>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500" disabled={addMutation.isPending}>
+            <Button type="submit" className="w-full" disabled={addMutation.isPending}>
               {addMutation.isPending ? "追加中..." : "追加する"}
             </Button>
           </form>
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="このタスクを削除しますか？"
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget);
+            toast.success("削除しました");
+          }
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

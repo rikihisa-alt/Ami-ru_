@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { SupabaseProvider } from "@/providers/supabase-provider";
+import { MotionLevelProvider } from "@/lib/hooks/use-motion-level";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -52,12 +53,14 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>
-          <QueryProvider>
-            <SupabaseProvider>
-              {children}
-              <Toaster />
-            </SupabaseProvider>
-          </QueryProvider>
+          <MotionLevelProvider>
+            <QueryProvider>
+              <SupabaseProvider>
+                {children}
+                <Toaster />
+              </SupabaseProvider>
+            </QueryProvider>
+          </MotionLevelProvider>
         </ThemeProvider>
       </body>
     </html>

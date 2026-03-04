@@ -1,32 +1,70 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useMonthEvents, useDeleteCalendarEvent } from "@/lib/hooks/use-calendar";
+export const dynamic = "force-dynamic";
+
+import { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  useMonthEvents,
+  useDeleteCalendarEvent,
+} from "@/lib/hooks/use-calendar";
+import { useSupabase, useUser } from "@/providers/supabase-provider";
+import { CalendarGrid } from "@/components/calendar/calendar-grid";
+import { PersonFilter } from "@/components/calendar/person-filter";
+import { EventDetailModal } from "@/components/calendar/event-detail-modal";
 import { EventForm } from "@/components/calendar/event-form";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDate, formatDateTime, formatMonthYear } from "@/lib/utils/date";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { PrismButton } from "@/components/ui/prism-button";
+import { PrismCard } from "@/components/ui/prism-card";
+import { getEventColor } from "@/lib/utils/event-colors";
+import { getEventsForDay, format, parseISO } from "@/lib/utils/calendar-grid";
+import { ja } from "date-fns/locale";
+import { formatMonthYear } from "@/lib/utils/date";
 import { cn } from "@/lib/utils";
 import {
   ChevronLeft,
   ChevronRight,
-  MapPin,
-  Trash2,
   Calendar as CalendarIcon,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
+
+type PersonFilterValue = "all" | "mine" | "partner";
 
 export default function CalendarPage() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [editEvent, setEditEvent] = useState<any | null>(null);
+  const [editFormOpen, setEditFormOpen] = useState(false);
+  const [personFilter, setPersonFilter] = useState<PersonFilterValue>("all");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const { data: events, isLoading } = useMonthEvents(year, month);
+  const { data: events } = useMonthEvents(year, month);
   const deleteEvent = useDeleteCalendarEvent();
+  const supabase = useSupabase();
+  const { user, profile } = useUser();
 
+  // Fetch partner profile
+  const [partner, setPartner] = useState<{
+    id: string;
+    display_name: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!profile?.pair_id || !user) return;
+    supabase
+      .from("profiles")
+      .select("id, display_name")
+      .eq("pair_id", profile.pair_id)
+      .neq("id", user.id)
+      .single()
+      .then(({ data }) => setPartner(data));
+  }, [profile?.pair_id, user, supabase]);
+
+  // Month navigation
   const prevMonth = () => {
     if (month === 0) {
       setYear(year - 1);
@@ -34,6 +72,7 @@ export default function CalendarPage() {
     } else {
       setMonth(month - 1);
     }
+    setSelectedDate(null);
   };
 
   const nextMonth = () => {
@@ -43,237 +82,302 @@ export default function CalendarPage() {
     } else {
       setMonth(month + 1);
     }
+    setSelectedDate(null);
   };
 
-  const eventsByDate = useMemo(() => {
-    if (!events) return {};
-    return events.reduce(
-      (
-        acc: Record<string, typeof events>,
-        event: { start_at: string }
-      ) => {
-        const date = new Date(event.start_at).toISOString().split("T")[0];
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(event);
-        return acc;
+  // Filter events by person
+  const filteredEvents = useMemo(() => {
+    if (!events) return [];
+    if (personFilter === "all") return events;
+
+    return events.filter((ev: any) => {
+      if (personFilter === "mine") {
+        // Events I created or assigned to me, or shared (no assignee)
+        return (
+          ev.assignee_id === user?.id ||
+          (!ev.assignee_id && ev.created_by === user?.id) ||
+          ev.created_by === user?.id
+        );
+      }
+      // partner
+      return (
+        ev.assignee_id === partner?.id ||
+        (!ev.assignee_id && ev.created_by === partner?.id) ||
+        ev.created_by === partner?.id
+      );
+    });
+  }, [events, personFilter, user?.id, partner?.id]);
+
+  // Events for selected day
+  const selectedDayEvents = useMemo(() => {
+    if (!selectedDate || !filteredEvents.length) return { allDay: [], timed: [] };
+    const day = new Date(selectedDate + "T00:00:00");
+    return getEventsForDay(filteredEvents, day);
+  }, [selectedDate, filteredEvents]);
+
+  const hasSelectedDayEvents =
+    selectedDayEvents.allDay.length > 0 || selectedDayEvents.timed.length > 0;
+
+  // Resolve assignee display name
+  const resolveAssignee = useCallback(
+    (assigneeId: string | null, createdBy: string): string => {
+      if (!assigneeId) return "共有";
+      if (assigneeId === user?.id) return profile?.display_name ?? "自分";
+      if (assigneeId === partner?.id) return partner?.display_name ?? "相手";
+      // Fallback: check created_by
+      if (createdBy === user?.id) return profile?.display_name ?? "自分";
+      return partner?.display_name ?? "相手";
+    },
+    [user?.id, partner?.id, profile?.display_name, partner?.display_name]
+  );
+
+  // Handle delete
+  const handleDeleteConfirm = () => {
+    if (!deleteTarget) return;
+    deleteEvent.mutate(deleteTarget, {
+      onSuccess: () => {
+        toast.success("予定を削除しました");
+        setDeleteTarget(null);
+        setSelectedEvent(null);
       },
-      {} as Record<string, typeof events>
-    );
-  }, [events]);
-
-  const calendarDays = useMemo(() => {
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const days: (number | null)[] = [];
-
-    for (let i = 0; i < firstDay; i++) days.push(null);
-    for (let i = 1; i <= daysInMonth; i++) days.push(i);
-
-    return days;
-  }, [year, month]);
-
-  const getEventsForDay = (day: number) => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return eventsByDate[dateStr] ?? [];
+      onError: () => {
+        // silent in demo mode
+      },
+    });
   };
 
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-
-  const handleDelete = (eventId: string) => {
-    deleteEvent.mutate(eventId);
-    toast.success("予定を削除しました");
+  // Handle edit from detail modal
+  const handleEdit = (ev: any) => {
+    setEditEvent(ev);
+    setEditFormOpen(true);
   };
+
+  // Handle delete from detail modal (open confirm dialog)
+  const handleDeleteRequest = (eventId: string) => {
+    setSelectedEvent(null);
+    setDeleteTarget(eventId);
+  };
+
+  // Format time for event card display
+  const formatEventTime = (ev: any): string => {
+    if (ev.is_all_day) return "終日";
+    const start = parseISO(ev.start_at);
+    const startTime = format(start, "HH:mm");
+    if (ev.end_at) {
+      const end = parseISO(ev.end_at);
+      const endTime = format(end, "HH:mm");
+      return `${startTime} ~ ${endTime}`;
+    }
+    return startTime;
+  };
+
+  // Selected date display
+  const selectedDateLabel = useMemo(() => {
+    if (!selectedDate) return "";
+    const d = new Date(selectedDate + "T00:00:00");
+    return format(d, "M月d日(E)", { locale: ja });
+  }, [selectedDate]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-pink-400" />
-          <h1 className="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-400 bg-clip-text text-transparent">予定</h1>
+    <div className="space-y-5">
+      {/* Header with month navigation */}
+      <div className="flex items-center justify-between motion-safe:animate-prism-fade-up">
+        <div className="flex items-center gap-2.5">
+          <CalendarIcon className="h-5 w-5 text-violet-400" />
+          <h1 className="text-xl font-bold tracking-tight text-foreground">
+            予定
+          </h1>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={prevMonth}>
+          <PrismButton variant="ghost" size="icon" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
-          </Button>
+          </PrismButton>
           <span className="min-w-[100px] text-center text-sm font-medium">
             {formatMonthYear(new Date(year, month))}
           </span>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-pink-50 dark:hover:bg-pink-950" onClick={nextMonth}>
+          <PrismButton variant="ghost" size="icon" onClick={nextMonth}>
             <ChevronRight className="h-4 w-4" />
-          </Button>
+          </PrismButton>
         </div>
       </div>
 
-      <Tabs defaultValue="month">
-        <TabsList className="w-full bg-pink-50/50 dark:bg-pink-950/20">
-          <TabsTrigger value="month" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-pink-500 dark:data-[state=active]:bg-background">
-            月
-          </TabsTrigger>
-          <TabsTrigger value="list" className="flex-1 data-[state=active]:bg-white data-[state=active]:text-pink-500 dark:data-[state=active]:bg-background">
-            リスト
-          </TabsTrigger>
-        </TabsList>
+      {/* Person filter */}
+      <div className="motion-safe:animate-prism-fade-up">
+        <PersonFilter value={personFilter} onChange={setPersonFilter} />
+      </div>
 
-        <TabsContent value="month" className="mt-4">
-          <div className="grid grid-cols-7 gap-px text-center text-xs">
-            {["日", "月", "火", "水", "木", "金", "土"].map((d) => (
-              <div key={d} className="py-1 font-medium text-muted-foreground">
-                {d}
-              </div>
-            ))}
-            {calendarDays.map((day, i) => {
-              if (day === null) return <div key={`empty-${i}`} />;
-              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-              const dayEvents = getEventsForDay(day);
-              const isToday = dateStr === todayStr;
-              const isSelected = dateStr === selectedDate;
+      {/* Calendar grid */}
+      <div className="motion-safe:animate-prism-fade-up">
+        <CalendarGrid
+          year={year}
+          month={month}
+          events={filteredEvents}
+          selectedDate={selectedDate}
+          onSelectDate={(d) =>
+            setSelectedDate(d === selectedDate ? null : d)
+          }
+        />
+      </div>
 
-              return (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDate(dateStr === selectedDate ? null : dateStr)}
-                  className={cn(
-                    "flex flex-col items-center gap-0.5 rounded-xl p-1 transition-all",
-                    isToday && "bg-pink-50 font-bold dark:bg-pink-950/40",
-                    isSelected && "ring-2 ring-pink-400"
-                  )}
-                >
-                  <span className={cn("text-sm", isToday && "text-pink-500")}>
-                    {day}
-                  </span>
-                  {dayEvents.length > 0 && (
-                    <div className="flex gap-0.5">
-                      {dayEvents.slice(0, 3).map((_: unknown, idx: number) => (
-                        <div
-                          key={idx}
-                          className="h-1 w-1 rounded-full bg-pink-400"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+      {/* Selected day event list */}
+      {selectedDate && (
+        <div className="space-y-2 motion-safe:animate-prism-fade-up">
+          <h3 className="text-sm font-semibold text-foreground">
+            {selectedDateLabel}
+          </h3>
 
-          {selectedDate && (
-            <div className="mt-4 space-y-2">
-              <h3 className="text-sm font-medium text-pink-500">
-                {formatDate(selectedDate)}
-              </h3>
-              {(eventsByDate[selectedDate] ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  予定はありません
-                </p>
-              ) : (
-                eventsByDate[selectedDate]?.map(
-                  (event: {
-                    id: string;
-                    title: string;
-                    start_at: string;
-                    is_all_day: boolean;
-                    location: string | null;
-                  }) => (
-                    <Card key={event.id} className="flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {event.is_all_day
-                            ? "終日"
-                            : formatDateTime(event.start_at).split(" ")[1]}
-                        </p>
-                        {event.location && (
-                          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3 text-pink-400" />
-                            {event.location}
-                          </p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-red-400"
-                        onClick={() => handleDelete(event.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </Card>
-                  )
-                )
-              )}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-16 animate-pulse rounded-2xl bg-pink-50 dark:bg-pink-950/30"
-                />
-              ))}
-            </div>
-          ) : events?.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-pink-50 dark:bg-pink-950/30">
-                <CalendarIcon className="h-8 w-8 text-pink-300" />
-              </div>
-              <p className="font-medium">今月の予定はありません</p>
-            </div>
+          {!hasSelectedDayEvents ? (
+            <EmptyState
+              icon={CalendarIcon}
+              title="予定はありません"
+              iconColor="text-muted-foreground/50"
+              className="py-10"
+            />
           ) : (
             <div className="space-y-2">
-              {Object.entries(eventsByDate)
-                .sort(([a], [b]) => a.localeCompare(b))
-                .map(([date, dayEvents]) => (
-                  <div key={date}>
-                    <h3 className="mb-1 text-xs font-medium text-pink-400">
-                      {formatDate(date)}
-                    </h3>
-                    {(dayEvents as { id: string; title: string; start_at: string; is_all_day: boolean; location: string | null }[]).map((event) => (
-                      <Card
-                        key={event.id}
-                        className="mb-2 flex items-center gap-3 border-pink-100/60 p-3 dark:border-pink-900/20"
-                      >
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{event.title}</p>
-                          <div className="flex gap-2">
-                            {event.is_all_day ? (
-                              <Badge variant="secondary" className="bg-violet-50 text-violet-500 text-xs dark:bg-violet-900/30 dark:text-violet-300">
-                                終日
-                              </Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                {formatDateTime(event.start_at).split(" ")[1]}
-                              </span>
-                            )}
-                            {event.location && (
-                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3 text-pink-400" />
-                                {event.location}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-red-400"
-                          onClick={() => handleDelete(event.id)}
+              {/* All-day events first */}
+              {selectedDayEvents.allDay.map((ev: any) => (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => setSelectedEvent(ev)}
+                  className="w-full text-left"
+                >
+                  <PrismCard
+                    variant="flat"
+                    hoverable
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div
+                      className={cn(
+                        "h-8 w-1 shrink-0 rounded-full",
+                        getEventColor(ev.color ?? "primary").dot
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {ev.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span
+                          className={cn(
+                            "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+                            getEventColor(ev.color ?? "primary").chip
+                          )}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </Card>
-                    ))}
-                  </div>
-                ))}
+                          終日
+                        </span>
+                        <span>
+                          {resolveAssignee(
+                            ev.assignee_id ?? null,
+                            ev.created_by
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </PrismCard>
+                </button>
+              ))}
+
+              {/* Timed events */}
+              {selectedDayEvents.timed.map((ev: any) => (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => setSelectedEvent(ev)}
+                  className="w-full text-left"
+                >
+                  <PrismCard
+                    variant="flat"
+                    hoverable
+                    className="flex items-center gap-3 p-3"
+                  >
+                    <div
+                      className={cn(
+                        "h-8 w-1 shrink-0 rounded-full",
+                        getEventColor(ev.color ?? "primary").dot
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {ev.title}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{formatEventTime(ev)}</span>
+                        {ev.location && (
+                          <span className="flex items-center gap-0.5">
+                            <MapPin className="h-3 w-3" />
+                            <span className="max-w-[120px] truncate">
+                              {ev.location}
+                            </span>
+                          </span>
+                        )}
+                        <span>
+                          {resolveAssignee(
+                            ev.assignee_id ?? null,
+                            ev.created_by
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </PrismCard>
+                </button>
+              ))}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
-      <EventForm />
+      {/* Event detail modal */}
+      <EventDetailModal
+        event={selectedEvent}
+        open={!!selectedEvent}
+        onOpenChange={(v) => {
+          if (!v) setSelectedEvent(null);
+        }}
+        onEdit={handleEdit}
+        onDelete={handleDeleteRequest}
+        resolveAssignee={resolveAssignee}
+      />
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(v) => {
+          if (!v) setDeleteTarget(null);
+        }}
+        title="予定を削除"
+        description="この予定を削除しますか？この操作は取り消せません。"
+        confirmLabel="削除する"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteEvent.isPending}
+      />
+
+      {/* Event form (add mode - FAB) */}
+      <EventForm
+        userId={user?.id}
+        partnerId={partner?.id}
+        defaultDate={selectedDate ?? undefined}
+      />
+
+      {/* Event form (edit mode - controlled) */}
+      {editEvent && (
+        <EventForm
+          editEvent={editEvent}
+          open={editFormOpen}
+          onOpenChange={(v) => {
+            setEditFormOpen(v);
+            if (!v) setEditEvent(null);
+          }}
+          onSuccess={() => {
+            setEditEvent(null);
+            setEditFormOpen(false);
+          }}
+          userId={user?.id}
+          partnerId={partner?.id}
+        />
+      )}
     </div>
   );
 }
