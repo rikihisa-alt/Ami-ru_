@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -22,38 +23,77 @@ type SupabaseContextType = {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  refreshProfile: () => Promise<void>;
 };
 
 const SupabaseContext = createContext<SupabaseContextType | undefined>(
   undefined
 );
 
-const MOCK_USER = {
-  id: "mock-user-001",
-  email: "demo@ami-ru.app",
-  app_metadata: {},
-  user_metadata: { full_name: "デモユーザー" },
-  aud: "authenticated",
-  created_at: new Date().toISOString(),
-} as unknown as User;
-
-const MOCK_PROFILE: Profile = {
-  id: "mock-user-001",
-  display_name: "デモユーザー",
-  avatar_url: null,
-  pair_id: "mock-pair-001",
-};
-
 export function SupabaseProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dev mode: use mock user/profile, skip Supabase auth
-  const user = MOCK_USER;
-  const profile = MOCK_PROFILE;
-  const isLoading = false;
+  const fetchProfile = useCallback(
+    async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, pair_id")
+        .eq("id", userId)
+        .single();
+      setProfile(data ?? null);
+    },
+    [supabase]
+  );
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
+
+  useEffect(() => {
+    // Initial session check
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      }
+      setIsLoading(false);
+    };
+    init();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await fetchProfile(currentUser.id);
+      } else {
+        setProfile(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, fetchProfile]);
 
   return (
-    <SupabaseContext.Provider value={{ supabase, user, profile, isLoading }}>
+    <SupabaseContext.Provider
+      value={{ supabase, user, profile, isLoading, refreshProfile }}
+    >
       {children}
     </SupabaseContext.Provider>
   );
@@ -72,5 +112,10 @@ export function useUser() {
   if (!context) {
     throw new Error("useUser must be used within a SupabaseProvider");
   }
-  return { user: context.user, profile: context.profile, isLoading: context.isLoading };
+  return {
+    user: context.user,
+    profile: context.profile,
+    isLoading: context.isLoading,
+    refreshProfile: context.refreshProfile,
+  };
 }

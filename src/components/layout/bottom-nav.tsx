@@ -8,6 +8,7 @@ import {
   Calendar,
   Wallet,
   LayoutGrid,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ const TABS: TabItem[] = [
   { href: "/pantry", label: "冷蔵庫", icon: Refrigerator },
   { href: "/calendar", label: "予定", icon: Calendar },
   { href: "/money", label: "お金", icon: Wallet },
+  { href: "/diary", label: "日記", icon: BookOpen },
   { href: "/board", label: "ボード", icon: LayoutGrid },
 ];
 
@@ -44,7 +46,7 @@ export function BottomNav() {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 px-3 py-1",
+                  "flex flex-col items-center justify-center gap-0.5 px-2 py-1",
                   "transition-colors duration-150",
                   isActive
                     ? "text-primary"
@@ -52,7 +54,7 @@ export function BottomNav() {
                 )}
               >
                 <tab.icon
-                  className={cn("h-[22px] w-[22px]", isActive && "stroke-[2.2]")}
+                  className={cn("h-[20px] w-[20px]", isActive && "stroke-[2.2]")}
                 />
                 <span className="text-[10px] font-medium leading-tight">
                   {tab.label}

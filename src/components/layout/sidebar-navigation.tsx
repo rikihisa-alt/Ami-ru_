@@ -8,6 +8,7 @@ import {
   Calendar,
   Wallet,
   LayoutGrid,
+  BookOpen,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/pantry", label: "冷蔵庫", icon: Refrigerator },
   { href: "/calendar", label: "予定", icon: Calendar },
   { href: "/money", label: "お金", icon: Wallet },
+  { href: "/diary", label: "日記", icon: BookOpen },
   { href: "/board", label: "ボード", icon: LayoutGrid },
 ] as const;
 
