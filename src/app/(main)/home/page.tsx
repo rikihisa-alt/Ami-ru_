@@ -135,94 +135,97 @@ export default function HomePage() {
   });
 
   return (
-    <div className="space-y-6 motion-safe:animate-page-in">
+    <div className="motion-safe:animate-page-in">
       {/* Greeting — simple text */}
       <h1 className="text-[22px] font-bold tracking-tight text-foreground">
         {profile?.display_name || "ゲスト"}さん、{GREETINGS[timeSlot]}
       </h1>
 
       {/* Emotion */}
-      <div className="space-y-2">
+      <div className="mt-4 space-y-2">
         <EmotionSelector />
         <ThanksButton />
       </div>
 
-      {/* ── 今日の予定 ── */}
-      <HomeSection title="今日の予定" icon={Calendar} href="/calendar">
-        {todayEvents?.length === 0 ? (
-          <p className="px-4 py-3 text-[14px] text-muted-foreground">予定はありません</p>
-        ) : (
-          <ul>
-            {todayEvents?.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => (
-              <li key={event.id} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="min-w-[42px] text-[13px] text-muted-foreground">
-                  {event.is_all_day ? "終日" : formatDateTime(event.start_at).split(" ")[1]}
-                </span>
-                <span className="text-[15px] text-foreground">{event.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </HomeSection>
-
-      {/* ── 期限が近い食材 ── */}
-      {expiringItems && expiringItems.length > 0 && (
-        <HomeSection title="期限が近い食材" icon={Refrigerator} href="/pantry">
-          <ul>
-            {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
-              const status = getExpiryStatus(item.expiry_date);
-              return (
-                <li key={item.id} className="flex items-center justify-between px-4 py-2.5">
-                  <div className="flex items-center gap-2.5">
-                    <div className={cn("h-2 w-2 rounded-full", expiryDot[status])} />
-                    <span className="text-[15px] text-foreground">{item.name}</span>
-                  </div>
-                  <span className={cn(
-                    "text-[13px]",
-                    status === "expired" ? "text-red-500" :
-                    status === "today" ? "text-amber-600" :
-                    "text-muted-foreground"
-                  )}>
-                    {getExpiryLabel(item.expiry_date)}
+      {/* ── Sections: 1col mobile / 2col desktop ── */}
+      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* ── 今日の予定 ── */}
+        <HomeSection title="今日の予定" icon={Calendar} href="/calendar">
+          {todayEvents?.length === 0 ? (
+            <p className="px-4 py-3 text-[14px] text-muted-foreground">予定はありません</p>
+          ) : (
+            <ul>
+              {todayEvents?.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => (
+                <li key={event.id} className="flex items-center gap-3 px-4 py-2.5">
+                  <span className="min-w-[42px] text-[13px] text-muted-foreground">
+                    {event.is_all_day ? "終日" : formatDateTime(event.start_at).split(" ")[1]}
                   </span>
+                  <span className="text-[15px] text-foreground">{event.title}</span>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          )}
         </HomeSection>
-      )}
 
-      {/* ── 今日のToDo ── */}
-      <HomeSection title="今日のToDo" icon={CheckSquare} href="/board/todos">
-        {todayTodos?.length === 0 ? (
-          <p className="px-4 py-3 text-[14px] text-muted-foreground">タスクはありません</p>
-        ) : (
-          <ul>
-            {todayTodos?.map((todo: { id: string; title: string }) => (
-              <li key={todo.id} className="flex items-center gap-3 px-4 py-2.5">
-                <div className="h-[18px] w-[18px] rounded-full border-[1.5px] border-border flex-shrink-0" />
-                <span className="text-[15px] text-foreground">{todo.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </HomeSection>
+        {/* ── 今日のToDo ── */}
+        <HomeSection title="今日のToDo" icon={CheckSquare} href="/board/todos">
+          {todayTodos?.length === 0 ? (
+            <p className="px-4 py-3 text-[14px] text-muted-foreground">タスクはありません</p>
+          ) : (
+            <ul>
+              {todayTodos?.map((todo: { id: string; title: string }) => (
+                <li key={todo.id} className="flex items-center gap-3 px-4 py-2.5">
+                  <div className="h-[18px] w-[18px] rounded-full border-[1.5px] border-border flex-shrink-0" />
+                  <span className="text-[15px] text-foreground">{todo.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </HomeSection>
 
-      {/* ── 今月の精算 ── */}
-      <HomeSection title="今月の精算" icon={Wallet} href="/money">
-        {!settlement || settlement.amount === 0 ? (
-          <p className="px-4 py-3 text-[14px] text-muted-foreground">精算なし</p>
-        ) : (
-          <div className="flex items-center gap-2 px-4 py-3">
-            <span className="text-[15px] font-medium text-foreground">{settlement.fromName}</span>
-            <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[15px] font-medium text-foreground">{settlement.toName}</span>
-            <span className="ml-auto text-[15px] font-semibold text-primary">
-              {formatYen(settlement.amount)}
-            </span>
-          </div>
+        {/* ── 期限が近い食材 ── */}
+        {expiringItems && expiringItems.length > 0 && (
+          <HomeSection title="期限が近い食材" icon={Refrigerator} href="/pantry">
+            <ul>
+              {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
+                const status = getExpiryStatus(item.expiry_date);
+                return (
+                  <li key={item.id} className="flex items-center justify-between px-4 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={cn("h-2 w-2 rounded-full", expiryDot[status])} />
+                      <span className="text-[15px] text-foreground">{item.name}</span>
+                    </div>
+                    <span className={cn(
+                      "text-[13px]",
+                      status === "expired" ? "text-red-500" :
+                      status === "today" ? "text-amber-600" :
+                      "text-muted-foreground"
+                    )}>
+                      {getExpiryLabel(item.expiry_date)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </HomeSection>
         )}
-      </HomeSection>
+
+        {/* ── 今月の精算 ── */}
+        <HomeSection title="今月の精算" icon={Wallet} href="/money">
+          {!settlement || settlement.amount === 0 ? (
+            <p className="px-4 py-3 text-[14px] text-muted-foreground">精算なし</p>
+          ) : (
+            <div className="flex items-center gap-2 px-4 py-3">
+              <span className="text-[15px] font-medium text-foreground">{settlement.fromName}</span>
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[15px] font-medium text-foreground">{settlement.toName}</span>
+              <span className="ml-auto text-[15px] font-semibold text-primary">
+                {formatYen(settlement.amount)}
+              </span>
+            </div>
+          )}
+        </HomeSection>
+      </div>
     </div>
   );
 }

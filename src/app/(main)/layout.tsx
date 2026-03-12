@@ -14,7 +14,7 @@ export default function MainLayout({
       <SidebarNavigation />
       <div className="flex flex-1 flex-col">
         <Header />
-        <main className="mx-auto w-full max-w-[720px] flex-1 px-4 pb-24 pt-3 lg:px-6 lg:pb-8 lg:pt-6">
+        <main className="mx-auto w-full max-w-[720px] flex-1 px-4 pb-24 pt-3 lg:max-w-none lg:px-10 lg:pb-8 lg:pt-6">
           {children}
         </main>
       </div>
