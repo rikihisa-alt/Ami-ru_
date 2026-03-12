@@ -7,8 +7,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -38,478 +36,289 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --font-sans: var(--font-system);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
 
-  /* ── PRISM FLOW Animations ── */
-  --animate-prism-float: prism-float 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-prism-fade-up: prism-fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-prism-scale-in: prism-scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-prism-shimmer: prism-shimmer 1.8s ease-out both;
-  --animate-prism-nudge: prism-nudge 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-dock-float: dock-float 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-backdrop-drift: backdrop-drift 25s linear infinite;
-  --animate-toast-snap-in: toast-snap-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-modal-zoom: modal-zoom 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-list-spring: list-spring 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  /* Animations — subtle, fast */
+  --animate-page-in: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-list-in: list-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-modal-in: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-toast-in: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-dock-in: dock-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
-  /* Legacy compat */
-  --animate-soft-scale-in: prism-scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-fade-in-up: prism-fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-emotion-pulse: prism-nudge 0.5s ease-out both;
-  --animate-micro-bounce: prism-scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  --animate-slide-reveal: prism-fade-up 0.35s ease-out both;
-  --animate-glass-sheen: prism-shimmer 1.6s ease-out both;
+  /* Legacy compat aliases */
+  --animate-prism-fade-up: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-prism-float: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-prism-scale-in: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-dock-float: dock-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-reveal: list-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-soft-scale-in: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in-up: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-emotion-pulse: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-micro-bounce: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-glass-sheen: page-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-toast-snap-in: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-modal-zoom: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-list-spring: list-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-prism-nudge: page-in 0.2s ease both;
+  --animate-prism-shimmer: page-in 0.3s ease both;
+  --animate-backdrop-drift: page-in 0.3s ease both;
 }
 
-/* ═══════════════════════════════════════════════════════
- * PRISM FLOW — Design System
- * ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+ * Ami-ru — Apple-inspired Design System
+ * ═══════════════════════════════════════════ */
 
-/* ── Light Theme (Milk White Base) ── */
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
+  --font-system: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
 
-  /* Base / Surface */
-  --background: #FAFBFF;
-  --foreground: #1A1D2E;
+  /* Base — warm white */
+  --background: #FAFAF8;
+  --foreground: #1A1A18;
   --card: #FFFFFF;
-  --card-foreground: #1A1D2E;
+  --card-foreground: #1A1A18;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1D2E;
+  --popover-foreground: #1A1A18;
 
-  /* Primary: warm coral (matches existing theme system) */
-  --primary: #C8796F;
+  /* Primary — warm coral (accent for self) */
+  --primary: #E8756D;
   --primary-foreground: #FFFFFF;
 
   /* Secondary */
-  --secondary: #F0F1F6;
-  --secondary-foreground: #3D3F52;
+  --secondary: #F2F2EE;
+  --secondary-foreground: #3D3D38;
 
   /* Muted */
-  --muted: #F4F5F9;
-  --muted-foreground: #7C7F94;
+  --muted: #F5F5F2;
+  --muted-foreground: #8A8A82;
 
   /* Accent */
-  --accent: #EDE8F7;
-  --accent-foreground: #4A3D6B;
+  --accent: #F0EDE8;
+  --accent-foreground: #5A5A52;
 
   /* Status */
-  --destructive: #EF4444;
-  --success: #22C55E;
-  --warn: #F59E0B;
+  --destructive: #E54D4D;
+  --success: #34B870;
+  --warn: #E8A840;
 
-  /* Borders */
-  --border: #E8EAF0;
-  --input: #E8EAF0;
-  --ring: #C8796F;
+  /* Borders — subtle warm gray */
+  --border: #E8E8E4;
+  --input: #E8E8E4;
+  --ring: #E8756D;
 
   /* Charts */
-  --chart-1: #C8796F;
-  --chart-2: #7C6AF0;
-  --chart-3: #3ECFA0;
-  --chart-4: #F06A9B;
-  --chart-5: #F5B731;
+  --chart-1: #E8756D;
+  --chart-2: #6B9EFF;
+  --chart-3: #34B870;
+  --chart-4: #E8A840;
+  --chart-5: #9B7ECF;
+
+  /* Partner color */
+  --partner: #6B9EFF;
 
   /* Sidebar */
-  --sidebar: #FAFBFF;
-  --sidebar-foreground: #1A1D2E;
-  --sidebar-primary: #C8796F;
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #1A1A18;
+  --sidebar-primary: #E8756D;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F0F1F6;
-  --sidebar-accent-foreground: #3D3F52;
-  --sidebar-border: #E8EAF0;
-  --sidebar-ring: #C8796F;
+  --sidebar-accent: #F2F2EE;
+  --sidebar-accent-foreground: #3D3D38;
+  --sidebar-border: #E8E8E4;
+  --sidebar-ring: #E8756D;
 
-  /* ── PRISM Design Tokens ── */
+  /* Legacy glass/prism tokens — simplified to solid */
+  --prism-accent1: #E8756D;
+  --prism-accent2: #6B9EFF;
+  --prism-accent3: #34B870;
+  --prism-surface: #FFFFFF;
+  --prism-surface-hover: #FAFAF8;
+  --prism-surface-border: #E8E8E4;
+  --prism-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --prism-shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --prism-shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+  --prism-shadow-xl: 0 8px 24px rgba(0,0,0,0.10);
+  --prism-glow: none;
 
-  /* Accent palette */
-  --prism-accent1: #7C6AF0;
-  --prism-accent2: #F06A9B;
-  --prism-accent3: #3ECFA0;
+  --glass-bg: #FFFFFF;
+  --glass-bg-hover: #F5F5F2;
+  --glass-border: #E8E8E4;
+  --glass-highlight: transparent;
+  --glass-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  --glass-shadow-lg: 0 2px 8px rgba(0,0,0,0.06);
+  --glass-blur: 0px;
+  --glass-primary-bg: rgba(232, 117, 109, 0.08);
+  --glass-primary-bg-hover: rgba(232, 117, 109, 0.14);
+  --dock-bg: rgba(255, 255, 255, 0.92);
+  --dock-border: #E8E8E4;
+  --dock-pill-bg: rgba(232, 117, 109, 0.08);
+  --dock-pill-border: rgba(232, 117, 109, 0.14);
 
-  /* Surface glass */
-  --prism-surface: rgba(255, 255, 255, 0.72);
-  --prism-surface-hover: rgba(255, 255, 255, 0.88);
-  --prism-surface-border: rgba(255, 255, 255, 0.60);
-
-  /* Backdrop gradient */
-  --prism-backdrop: linear-gradient(
-    135deg,
-    rgba(124, 106, 240, 0.06) 0%,
-    rgba(240, 106, 155, 0.04) 35%,
-    rgba(62, 207, 160, 0.04) 65%,
-    rgba(245, 183, 49, 0.03) 100%
-  );
-
-  /* Shadows — light & clean */
-  --prism-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --prism-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --prism-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --prism-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.10);
-  --prism-glow: 0 0 20px rgba(200, 121, 111, 0.12);
-
-  /* Dock tokens */
-  --dock-bg: rgba(255, 255, 255, 0.78);
-  --dock-border: rgba(255, 255, 255, 0.70);
-  --dock-pill-bg: rgba(200, 121, 111, 0.10);
-  --dock-pill-border: rgba(200, 121, 111, 0.18);
-
-  /* Legacy glass compat */
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-bg-hover: rgba(255, 255, 255, 0.70);
-  --glass-border: rgba(255, 255, 255, 0.60);
-  --glass-highlight: rgba(255, 255, 255, 0.80);
-  --glass-shadow: 0 2px 12px rgba(180, 120, 110, 0.06);
-  --glass-shadow-lg: 0 8px 32px rgba(180, 120, 110, 0.10);
-  --glass-blur: 20px;
-  --glass-primary-bg: rgba(200, 121, 111, 0.10);
-  --glass-primary-bg-hover: rgba(200, 121, 111, 0.18);
-
-  /* Gradient stops */
-  --gradient-peach: #FDDCCC;
-  --gradient-rose: #F5C6C6;
-  --gradient-lavender: #E0D4F0;
-  --gradient-mint: #D0F0E8;
+  --gradient-peach: #F5F5F2;
+  --gradient-rose: #F5F5F2;
+  --gradient-lavender: #F5F5F2;
+  --gradient-mint: #F5F5F2;
 }
 
-/* ═══════════════════════════════════════════════════════
- * Pastel Theme Color Variants (Light)
- * ※ .dark の前に配置 → ダークモード時は .dark が勝つ
- * ═══════════════════════════════════════════════════════ */
-
-/* ── Sakura ── */
-[data-color="sakura"] {
-  --background: #FDFAFC; --foreground: #1A1D2E;
-  --primary: #D48BA6; --primary-foreground: #FFFFFF;
-  --secondary: #F8F0F4; --secondary-foreground: #3D3F52;
-  --muted: #F8F2F5; --muted-foreground: #7C7F94;
-  --accent: #F0E0EA; --accent-foreground: #6B4058;
-  --border: #F0E8EC; --input: #F0E8EC; --ring: #D48BA6;
-  --sidebar-primary: #D48BA6; --sidebar-primary-foreground: #FFFFFF; --sidebar-ring: #D48BA6;
-  --prism-accent1: #D48BA6; --prism-accent2: #B07CC8; --prism-accent3: #7EC8B8;
-  --prism-glow: 0 0 20px rgba(212, 139, 166, 0.12);
-  --dock-pill-bg: rgba(212, 139, 166, 0.10); --dock-pill-border: rgba(212, 139, 166, 0.18);
-  --glass-primary-bg: rgba(212, 139, 166, 0.10); --glass-primary-bg-hover: rgba(212, 139, 166, 0.18);
-  --chart-1: #D48BA6; --chart-2: #B07CC8; --chart-3: #7EC8B8; --chart-4: #7BB8D4; --chart-5: #D4B87A;
-}
-
-/* ── Lavender ── */
-[data-color="lavender"] {
-  --background: #FAFAFF; --foreground: #1A1D2E;
-  --primary: #9B8BC8; --primary-foreground: #FFFFFF;
-  --secondary: #F2F0F8; --secondary-foreground: #3D3F52;
-  --muted: #F4F2F8; --muted-foreground: #7C7F94;
-  --accent: #E5DEF5; --accent-foreground: #4A3E6B;
-  --border: #EAE6F0; --input: #EAE6F0; --ring: #9B8BC8;
-  --sidebar-primary: #9B8BC8; --sidebar-primary-foreground: #FFFFFF; --sidebar-ring: #9B8BC8;
-  --prism-accent1: #9B8BC8; --prism-accent2: #C88BA4; --prism-accent3: #6BBDA0;
-  --prism-glow: 0 0 20px rgba(155, 139, 200, 0.12);
-  --dock-pill-bg: rgba(155, 139, 200, 0.10); --dock-pill-border: rgba(155, 139, 200, 0.18);
-  --glass-primary-bg: rgba(155, 139, 200, 0.10); --glass-primary-bg-hover: rgba(155, 139, 200, 0.18);
-  --chart-1: #9B8BC8; --chart-2: #C88BA4; --chart-3: #7EC8B8; --chart-4: #7BB8D4; --chart-5: #D4B87A;
-}
-
-/* ── Sky ── */
-[data-color="sky"] {
-  --background: #FAFCFF; --foreground: #1A1D2E;
-  --primary: #6BA8C8; --primary-foreground: #FFFFFF;
-  --secondary: #EFF4F8; --secondary-foreground: #3D3F52;
-  --muted: #F2F5F8; --muted-foreground: #7C7F94;
-  --accent: #DEE8F5; --accent-foreground: #3E506B;
-  --border: #E4ECF0; --input: #E4ECF0; --ring: #6BA8C8;
-  --sidebar-primary: #6BA8C8; --sidebar-primary-foreground: #FFFFFF; --sidebar-ring: #6BA8C8;
-  --prism-accent1: #6BA8C8; --prism-accent2: #9B8BC8; --prism-accent3: #6BBD9E;
-  --prism-glow: 0 0 20px rgba(107, 168, 200, 0.12);
-  --dock-pill-bg: rgba(107, 168, 200, 0.10); --dock-pill-border: rgba(107, 168, 200, 0.18);
-  --glass-primary-bg: rgba(107, 168, 200, 0.10); --glass-primary-bg-hover: rgba(107, 168, 200, 0.18);
-  --chart-1: #6BA8C8; --chart-2: #9B8BC8; --chart-3: #7EC8B8; --chart-4: #C88B8B; --chart-5: #D4B87A;
-}
-
-/* ── Mint ── */
-[data-color="mint"] {
-  --background: #FAFFFC; --foreground: #1A1D2E;
-  --primary: #6BBD9E; --primary-foreground: #FFFFFF;
-  --secondary: #EFF8F4; --secondary-foreground: #3D3F52;
-  --muted: #F2F8F5; --muted-foreground: #7C7F94;
-  --accent: #DEF5E8; --accent-foreground: #3E6B50;
-  --border: #E2F0E8; --input: #E2F0E8; --ring: #6BBD9E;
-  --sidebar-primary: #6BBD9E; --sidebar-primary-foreground: #FFFFFF; --sidebar-ring: #6BBD9E;
-  --prism-accent1: #6BBD9E; --prism-accent2: #6BA8C8; --prism-accent3: #D48BA6;
-  --prism-glow: 0 0 20px rgba(107, 189, 158, 0.12);
-  --dock-pill-bg: rgba(107, 189, 158, 0.10); --dock-pill-border: rgba(107, 189, 158, 0.18);
-  --glass-primary-bg: rgba(107, 189, 158, 0.10); --glass-primary-bg-hover: rgba(107, 189, 158, 0.18);
-  --chart-1: #6BBD9E; --chart-2: #9B8BC8; --chart-3: #C88B8B; --chart-4: #7BB8D4; --chart-5: #D4B87A;
-}
-
-/* ── Lemon ── */
-[data-color="lemon"] {
-  --background: #FFFEFC; --foreground: #1A1D2E;
-  --primary: #C8B05E; --primary-foreground: #FFFFFF;
-  --secondary: #F8F6EF; --secondary-foreground: #3D3F52;
-  --muted: #F8F6F0; --muted-foreground: #7C7F94;
-  --accent: #F0EAD0; --accent-foreground: #6B6238;
-  --border: #F0ECD8; --input: #F0ECD8; --ring: #C8B05E;
-  --sidebar-primary: #C8B05E; --sidebar-primary-foreground: #FFFFFF; --sidebar-ring: #C8B05E;
-  --prism-accent1: #C8B05E; --prism-accent2: #C88B6F; --prism-accent3: #6BBD9E;
-  --prism-glow: 0 0 20px rgba(200, 176, 94, 0.12);
-  --dock-pill-bg: rgba(200, 176, 94, 0.10); --dock-pill-border: rgba(200, 176, 94, 0.18);
-  --glass-primary-bg: rgba(200, 176, 94, 0.10); --glass-primary-bg-hover: rgba(200, 176, 94, 0.18);
-  --chart-1: #C8B05E; --chart-2: #9B8BC8; --chart-3: #7EC8B8; --chart-4: #7BB8D4; --chart-5: #C88B8B;
-}
-
-/* ═══════════════════════════════════════════════════════
- * Dark Theme
- * ═══════════════════════════════════════════════════════ */
+/* ── Dark ── */
 .dark {
-  --background: #0F1117;
-  --foreground: #E8EAF0;
-  --card: #181A24;
-  --card-foreground: #E8EAF0;
-  --popover: #181A24;
-  --popover-foreground: #E8EAF0;
-  --primary: #D4948C;
-  --primary-foreground: #0F1117;
-  --secondary: #1E2030;
-  --secondary-foreground: #C8CAD8;
-  --muted: #1E2030;
-  --muted-foreground: #7C7F94;
-  --accent: #252740;
-  --accent-foreground: #C8B8D8;
-  --destructive: #EF4444;
-  --border: #262838;
-  --input: #262838;
-  --ring: #D4948C;
-  --chart-1: #D4948C;
-  --chart-2: #9B8BF0;
-  --chart-3: #5EDCB0;
-  --chart-4: #F08BAB;
-  --chart-5: #F5C741;
-  --sidebar: #13151E;
-  --sidebar-foreground: #E8EAF0;
-  --sidebar-primary: #D4948C;
-  --sidebar-primary-foreground: #0F1117;
-  --sidebar-accent: #1E2030;
-  --sidebar-accent-foreground: #C8CAD8;
-  --sidebar-border: #262838;
-  --sidebar-ring: #D4948C;
-
-  /* PRISM dark tokens */
-  --prism-accent1: #9B8BF0;
-  --prism-accent2: #F08BAB;
-  --prism-accent3: #5EDCB0;
-  --prism-surface: rgba(24, 26, 36, 0.80);
-  --prism-surface-hover: rgba(30, 32, 48, 0.90);
-  --prism-surface-border: rgba(255, 255, 255, 0.06);
-  --prism-backdrop: linear-gradient(
-    135deg,
-    rgba(124, 106, 240, 0.04) 0%,
-    rgba(240, 106, 155, 0.03) 35%,
-    rgba(62, 207, 160, 0.03) 65%,
-    rgba(245, 183, 49, 0.02) 100%
-  );
-  --prism-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.20);
-  --prism-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-  --prism-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.30);
-  --prism-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.35);
-  --prism-glow: 0 0 20px rgba(212, 148, 140, 0.10);
-
-  /* Glass dark */
-  --glass-bg: rgba(255, 255, 255, 0.04);
-  --glass-bg-hover: rgba(255, 255, 255, 0.08);
-  --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-highlight: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 2px 12px rgba(0, 0, 0, 0.20);
-  --glass-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.30);
-  --glass-primary-bg: rgba(212, 148, 140, 0.10);
-  --glass-primary-bg-hover: rgba(212, 148, 140, 0.18);
-
-  /* Dock dark */
-  --dock-bg: rgba(15, 17, 23, 0.85);
-  --dock-border: rgba(255, 255, 255, 0.06);
-  --dock-pill-bg: rgba(212, 148, 140, 0.14);
-  --dock-pill-border: rgba(212, 148, 140, 0.24);
-
-  --gradient-peach: #2A1E1A;
-  --gradient-rose: #2A1A20;
-  --gradient-lavender: #1E1A2A;
-  --gradient-mint: #1A2A22;
+  --background: #111111;
+  --foreground: #E8E8E4;
+  --card: #1C1C1A;
+  --card-foreground: #E8E8E4;
+  --popover: #1C1C1A;
+  --popover-foreground: #E8E8E4;
+  --primary: #E8918A;
+  --primary-foreground: #111111;
+  --secondary: #242422;
+  --secondary-foreground: #C8C8C2;
+  --muted: #242422;
+  --muted-foreground: #8A8A82;
+  --accent: #2A2A26;
+  --accent-foreground: #C8C8C2;
+  --destructive: #E54D4D;
+  --border: #2E2E2A;
+  --input: #2E2E2A;
+  --ring: #E8918A;
+  --chart-1: #E8918A; --chart-2: #8AB8FF; --chart-3: #5EDCB0;
+  --chart-4: #E8C070; --chart-5: #B89EDF;
+  --partner: #8AB8FF;
+  --sidebar: #161614; --sidebar-foreground: #E8E8E4;
+  --sidebar-primary: #E8918A; --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #242422; --sidebar-accent-foreground: #C8C8C2;
+  --sidebar-border: #2E2E2A; --sidebar-ring: #E8918A;
+  --prism-accent1: #E8918A; --prism-accent2: #8AB8FF; --prism-accent3: #5EDCB0;
+  --prism-surface: #1C1C1A;
+  --prism-surface-hover: #242422;
+  --prism-surface-border: #2E2E2A;
+  --prism-shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --prism-shadow-md: 0 2px 8px rgba(0,0,0,0.30);
+  --prism-shadow-lg: 0 4px 16px rgba(0,0,0,0.35);
+  --prism-shadow-xl: 0 8px 24px rgba(0,0,0,0.40);
+  --prism-glow: none;
+  --glass-bg: #1C1C1A;
+  --glass-bg-hover: #242422;
+  --glass-border: #2E2E2A;
+  --glass-highlight: transparent;
+  --glass-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  --glass-shadow-lg: 0 2px 8px rgba(0,0,0,0.30);
+  --glass-primary-bg: rgba(232, 145, 138, 0.10);
+  --glass-primary-bg-hover: rgba(232, 145, 138, 0.18);
+  --dock-bg: rgba(17, 17, 17, 0.95);
+  --dock-border: #2E2E2A;
+  --dock-pill-bg: rgba(232, 145, 138, 0.12);
+  --dock-pill-border: rgba(232, 145, 138, 0.20);
+  --gradient-peach: #242422; --gradient-rose: #242422;
+  --gradient-lavender: #242422; --gradient-mint: #242422;
 }
 
-/* ── Dark × Color Variants ── */
-.dark[data-color="sakura"] {
-  --primary: #E0A8BC; --primary-foreground: #0F1117; --ring: #E0A8BC;
-  --sidebar-primary: #E0A8BC; --sidebar-primary-foreground: #0F1117; --sidebar-ring: #E0A8BC;
-  --prism-accent1: #E0A8BC; --prism-glow: 0 0 20px rgba(224,168,188,0.10);
-  --glass-primary-bg: rgba(224,168,188,0.10); --glass-primary-bg-hover: rgba(224,168,188,0.18);
-  --dock-pill-bg: rgba(224,168,188,0.14); --dock-pill-border: rgba(224,168,188,0.24);
-  --chart-1: #E0A8BC;
+/* ═══════════════════════════════════════════
+ * Keyframes — simple, clean
+ * ═══════════════════════════════════════════ */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.dark[data-color="lavender"] {
-  --primary: #B4A4D8; --primary-foreground: #0F1117; --ring: #B4A4D8;
-  --sidebar-primary: #B4A4D8; --sidebar-primary-foreground: #0F1117; --sidebar-ring: #B4A4D8;
-  --prism-accent1: #B4A4D8; --prism-glow: 0 0 20px rgba(180,164,216,0.10);
-  --glass-primary-bg: rgba(180,164,216,0.10); --glass-primary-bg-hover: rgba(180,164,216,0.18);
-  --dock-pill-bg: rgba(180,164,216,0.14); --dock-pill-border: rgba(180,164,216,0.24);
-  --chart-1: #B4A4D8;
+@keyframes list-in {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-.dark[data-color="sky"] {
-  --primary: #8CC4DC; --primary-foreground: #0F1117; --ring: #8CC4DC;
-  --sidebar-primary: #8CC4DC; --sidebar-primary-foreground: #0F1117; --sidebar-ring: #8CC4DC;
-  --prism-accent1: #8CC4DC; --prism-glow: 0 0 20px rgba(140,196,220,0.10);
-  --glass-primary-bg: rgba(140,196,220,0.10); --glass-primary-bg-hover: rgba(140,196,220,0.18);
-  --dock-pill-bg: rgba(140,196,220,0.14); --dock-pill-border: rgba(140,196,220,0.24);
-  --chart-1: #8CC4DC;
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
-.dark[data-color="mint"] {
-  --primary: #8CD4B8; --primary-foreground: #0F1117; --ring: #8CD4B8;
-  --sidebar-primary: #8CD4B8; --sidebar-primary-foreground: #0F1117; --sidebar-ring: #8CD4B8;
-  --prism-accent1: #8CD4B8; --prism-glow: 0 0 20px rgba(140,212,184,0.10);
-  --glass-primary-bg: rgba(140,212,184,0.10); --glass-primary-bg-hover: rgba(140,212,184,0.18);
-  --dock-pill-bg: rgba(140,212,184,0.14); --dock-pill-border: rgba(140,212,184,0.24);
-  --chart-1: #8CD4B8;
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.dark[data-color="lemon"] {
-  --primary: #DCCA8C; --primary-foreground: #0F1117; --ring: #DCCA8C;
-  --sidebar-primary: #DCCA8C; --sidebar-primary-foreground: #0F1117; --sidebar-ring: #DCCA8C;
-  --prism-accent1: #DCCA8C; --prism-glow: 0 0 20px rgba(220,202,140,0.10);
-  --glass-primary-bg: rgba(220,202,140,0.10); --glass-primary-bg-hover: rgba(220,202,140,0.18);
-  --dock-pill-bg: rgba(220,202,140,0.14); --dock-pill-border: rgba(220,202,140,0.24);
-  --chart-1: #DCCA8C;
+@keyframes dock-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ═══════════════════════════════════════════════════════
- * PRISM FLOW Keyframes
- * ═══════════════════════════════════════════════════════ */
-
-/* 1. PrismBackdropDrift — 背景グラデがゆっくり流れる */
-@keyframes backdrop-drift {
-  0%   { background-position: 0% 0%; }
-  25%  { background-position: 100% 50%; }
-  50%  { background-position: 50% 100%; }
-  75%  { background-position: 0% 50%; }
-  100% { background-position: 0% 0%; }
-}
-
-/* 4. PageSlideStackLite */
+/* Legacy compat keyframes */
 @keyframes prism-fade-up {
-  0%   { opacity: 0; transform: translateY(6px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* 5. CardFloatLift (mount animation) */
 @keyframes prism-float {
-  0%   { opacity: 0; transform: translateY(8px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* 3. prism-scale-in — modal / micro-bounce */
 @keyframes prism-scale-in {
-  0%   { opacity: 0; transform: scale(0.95); }
-  70%  { transform: scale(1.02); }
-  100% { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
-
-/* 6. IconNudge */
 @keyframes prism-nudge {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.12); }
+  50%  { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
-
-/* 7. ShimmerHint */
 @keyframes prism-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-
-/* GlassDockFloat */
+@keyframes backdrop-drift {
+  from { opacity: 1; }
+  to   { opacity: 1; }
+}
 @keyframes dock-float {
-  0%   { opacity: 0; transform: translateY(20px) scale(0.96); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* 8. ToastSnap */
 @keyframes toast-snap-in {
-  0%   { opacity: 0; transform: translateY(-8px) scale(0.96); }
-  70%  { transform: translateY(1px) scale(1.01); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* 9. ModalSoftZoom */
 @keyframes modal-zoom {
-  0%   { opacity: 0; transform: scale(0.92); }
-  100% { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
-
-/* 10. ListSpringReorder */
 @keyframes list-spring {
-  0%   { opacity: 0; transform: translateY(4px) scale(0.97); }
-  60%  { transform: translateY(-1px) scale(1.01); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-
-/* Legacy compat keyframe */
 @keyframes gradient-shift {
-  0%   { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  from { opacity: 1; }
+  to   { opacity: 1; }
 }
 
-/* ═══════════════════════════════════════════════════════
- * Mood Celebration Keyframes
- * ═══════════════════════════════════════════════════════ */
-
-/* Overlay slides up from bottom */
+/* Mood celebration keyframes (kept for compat) */
 @keyframes mood-overlay-enter {
-  0%   { opacity: 0; transform: translateY(40px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Icon pops in with elastic bounce */
 @keyframes mood-icon-pop {
   0%   { transform: scale(0); opacity: 0; }
-  45%  { transform: scale(1.35); opacity: 1; }
-  65%  { transform: scale(0.88); }
-  80%  { transform: scale(1.08); }
+  60%  { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); }
 }
-
-/* Particles burst outward from center */
 @keyframes mood-particle-burst {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.9; }
-  60%  { opacity: 0.6; }
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.8; }
   100% { transform: translate(var(--px), var(--py)) scale(0); opacity: 0; }
 }
-
-/* Sparkle twinkle (star accents) */
 @keyframes mood-sparkle {
   0%   { transform: scale(0) rotate(0deg); opacity: 0; }
-  50%  { transform: scale(1.2) rotate(90deg); opacity: 1; }
+  50%  { transform: scale(1) rotate(90deg); opacity: 1; }
   100% { transform: scale(0) rotate(180deg); opacity: 0; }
 }
-
-/* Message text slides up gently */
 @keyframes mood-text-reveal {
-  0%   { opacity: 0; transform: translateY(12px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Overlay exit */
 @keyframes mood-overlay-exit {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(20px) scale(0.96); }
+  from { opacity: 1; }
+  to   { opacity: 0; transform: translateY(12px); }
 }
 
-/* ═══════════════════════════════════════════════════════
- * Motion Level Control via [data-motion]
- * ═══════════════════════════════════════════════════════ */
-
-/* Motion OFF — disable all animations */
+/* ═══════════════════════════════════════════
+ * Motion control
+ * ═══════════════════════════════════════════ */
 [data-motion="0"] *,
 [data-motion="0"] *::before,
 [data-motion="0"] *::after {
@@ -518,213 +327,109 @@
   transition-duration: 0.001ms !important;
 }
 
-/* Backdrop drift only on RICH */
-.prism-backdrop {
-  animation: none;
-}
-[data-motion="2"] .prism-backdrop {
-  animation: backdrop-drift 25s linear infinite;
-}
+/* Backdrop drift — disabled */
+.prism-backdrop { animation: none; }
+[data-motion="2"] .prism-backdrop { animation: none; }
 
-/* ═══════════════════════════════════════════════════════
- * Base Styles
- * ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+ * Base styles
+ * ═══════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-system);
     font-feature-settings: "palt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* ═══════════════════════════════════════════════════════
- * PRISM FLOW Component Classes
- * ═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+ * Component classes — clean, Apple-inspired
+ * No gradients, no excessive blur, no glow
+ * ═══════════════════════════════════════════ */
 @layer components {
-  /* ── Prism Surface (card-like) ── */
+  /* Surface — solid bg, clean border */
+  .glass,
   .prism-surface {
-    background: var(--prism-surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--prism-surface-border);
-    box-shadow: var(--prism-shadow-sm);
-    border-radius: 16px;
+    background: var(--card);
+    border-bottom: 0.5px solid var(--border);
   }
 
+  .glass-elevated,
   .prism-surface-elevated {
-    background: var(--prism-surface);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--prism-surface-border);
-    box-shadow: var(--prism-shadow-md);
-    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: var(--prism-shadow-sm);
+    border-radius: 12px;
   }
 
-  /* ── Card Float Lift (hover effect) ── */
-  .prism-lift {
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .prism-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--prism-shadow-lg);
-  }
-  .prism-lift:active {
-    transform: translateY(0) scale(0.98);
-    transition-duration: 0.1s;
-  }
-
-  /* ── Button Magnetic Press ── */
-  .prism-press {
-    transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.12s ease;
-  }
-  .prism-press:active {
-    transform: scale(0.95);
-  }
-
-  /* ── Shimmer Hint (badge/highlight) ── */
-  .prism-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-  .prism-shimmer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.25) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: prism-shimmer 1.8s ease-out infinite;
-    pointer-events: none;
-  }
-  .dark .prism-shimmer::after {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      transparent 100%
-    );
-    background-size: 200% 100%;
-  }
-
-  /* ── Prism Backdrop (layout background) ── */
-  .prism-backdrop-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      135deg,
-      rgba(124, 106, 240, 0.06) 0%,
-      rgba(240, 106, 155, 0.04) 35%,
-      rgba(62, 207, 160, 0.04) 65%,
-      rgba(245, 183, 49, 0.03) 100%
-    );
-    background-size: 200% 200%;
-  }
-  .dark .prism-backdrop-layer {
-    background: linear-gradient(
-      135deg,
-      rgba(124, 106, 240, 0.03) 0%,
-      rgba(240, 106, 155, 0.02) 35%,
-      rgba(62, 207, 160, 0.02) 65%,
-      rgba(245, 183, 49, 0.01) 100%
-    );
-    background-size: 200% 200%;
-  }
-
-  /* ── Glass Dock (bottom tab bar) ── */
+  /* Bottom nav dock */
   .glass-dock {
     background: var(--dock-bg);
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    border: 1px solid var(--dock-border);
-    box-shadow:
-      0 -2px 20px rgba(0, 0, 0, 0.06),
-      inset 0 0.5px 0 rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-top: 0.5px solid var(--border);
   }
 
-  /* Active pill inside dock */
   .dock-pill {
     background: var(--dock-pill-bg);
     border: 1px solid var(--dock-pill-border);
   }
 
-  /* ── Legacy glass classes ── */
-  .glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .glass-elevated {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow-lg);
-  }
-
-  .glass-highlight {
-    position: relative;
-  }
-  .glass-highlight::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(
-      180deg,
-      var(--glass-highlight) 0%,
-      transparent 50%
-    );
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
-    pointer-events: none;
-  }
-
+  /* Glass hover */
   .glass-hover {
-    transition: all 0.25s ease;
+    transition: background-color 0.15s ease;
   }
   .glass-hover:hover {
     background: var(--glass-bg-hover);
-    box-shadow: var(--glass-shadow-lg);
-    transform: translateY(-1px);
   }
   .glass-hover:active {
-    transform: scale(0.97);
-    transition-duration: 0.1s;
+    opacity: 0.85;
   }
 
   .glass-primary {
     background: var(--glass-primary-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
   }
   .glass-primary:hover {
     background: var(--glass-primary-bg-hover);
   }
 
+  /* Prism backdrop — hidden (no gradient bg) */
+  .prism-backdrop-layer {
+    display: none;
+  }
+
+  /* Prism lift — subtle active state only */
+  .prism-lift {
+    transition: transform 0.12s ease;
+  }
+  .prism-lift:active {
+    transform: scale(0.98);
+  }
+
+  .prism-press {
+    transition: transform 0.1s ease;
+  }
+  .prism-press:active {
+    transform: scale(0.97);
+  }
+
+  /* Shimmer — disabled */
+  .prism-shimmer::after {
+    display: none;
+  }
+
+  /* Glass highlight border — removed */
+  .glass-highlight::before {
+    display: none;
+  }
+
+  /* Gradient pastel — solid fallback */
   .gradient-pastel {
-    background: linear-gradient(
-      135deg,
-      var(--gradient-peach) 0%,
-      var(--gradient-rose) 50%,
-      var(--gradient-lavender) 100%
-    );
-    background-size: 200% 200%;
-    background-position: 0% 50%;
+    background: var(--muted);
   }
 }

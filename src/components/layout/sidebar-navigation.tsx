@@ -9,7 +9,6 @@ import {
   Wallet,
   LayoutGrid,
   Settings,
-  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,16 +24,15 @@ export function SidebarNavigation() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex lg:w-[220px] lg:shrink-0 lg:flex-col glass lg:border-r-0 lg:rounded-none">
-      <div className="flex h-14 items-center gap-2 px-5">
-        <Heart className="h-5 w-5 text-primary/70" />
-        <span className="text-lg font-bold tracking-tight text-foreground">
+    <aside className="hidden lg:flex lg:w-[200px] lg:shrink-0 lg:flex-col lg:border-r lg:border-border">
+      <div className="flex h-12 items-center px-5">
+        <span className="text-[15px] font-bold tracking-tight text-foreground">
           Ami-ru
         </span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {navItems.map((item, i) => {
+      <nav className="flex flex-1 flex-col gap-0.5 px-3 py-2">
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (
@@ -42,34 +40,32 @@ export function SidebarNavigation() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
-                "transition-all duration-200",
-                "motion-safe:animate-slide-reveal",
+                "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium",
+                "transition-colors duration-150",
                 isActive
-                  ? "glass-primary text-primary"
-                  : "text-muted-foreground hover:bg-[var(--glass-bg)] hover:text-foreground"
+                  ? "bg-primary/8 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
-              style={{ animationDelay: `${i * 40}ms` }}
             >
-              <item.icon className="h-[18px] w-[18px]" />
+              <item.icon className="h-[16px] w-[16px]" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-[var(--glass-border)] px-3 py-3">
+      <div className="border-t border-border px-3 py-2">
         <Link
           href="/settings"
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
-            "transition-all duration-200",
+            "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium",
+            "transition-colors duration-150",
             pathname === "/settings"
-              ? "glass-primary text-primary"
-              : "text-muted-foreground hover:bg-[var(--glass-bg)] hover:text-foreground"
+              ? "bg-primary/8 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
-          <Settings className="h-[18px] w-[18px]" />
+          <Settings className="h-[16px] w-[16px]" />
           設定
         </Link>
       </div>
