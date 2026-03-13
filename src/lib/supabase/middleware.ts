@@ -46,48 +46,28 @@ export async function updateSession(request: NextRequest) {
 
   // Not logged in -> redirect to login (unless already on auth route)
   if (!user && !isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = "/login";
+    return NextResponse.redirect(redirectUrl);
   }
 
   if (user) {
-    // Check if user has a pair
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("pair_id")
-      .eq("id", user.id)
-      .single();
-
-    const hasPair = !!profile?.pair_id;
-
-    // Already logged in, on auth route -> redirect
+    // Already logged in, on auth route -> redirect to home
     if (isAuthRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = hasPair ? "/home" : "/create-pair";
-      return NextResponse.redirect(url);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/home";
+      return NextResponse.redirect(redirectUrl);
     }
 
-    // No pair but trying to access main routes
-    if (!hasPair && !isOnboardingRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/create-pair";
-      return NextResponse.redirect(url);
-    }
-
-    // Has pair but on onboarding routes
-    if (hasPair && isOnboardingRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/home";
-      return NextResponse.redirect(url);
-    }
-
-    // Root path redirect
+    // Root path -> redirect to home
     if (path === "/") {
-      const url = request.nextUrl.clone();
-      url.pathname = hasPair ? "/home" : "/create-pair";
-      return NextResponse.redirect(url);
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/home";
+      return NextResponse.redirect(redirectUrl);
     }
+
+    // ペア未作成でもメイン機能にアクセス可能
+    // オンボーディングルートもそのまま通す
   }
 
   return supabaseResponse;
