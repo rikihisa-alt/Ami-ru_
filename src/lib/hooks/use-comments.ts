@@ -28,15 +28,17 @@ export function useAddComment() {
   const pairId = profile?.pair_id;
 
   return useMutation({
-    mutationFn: (input: { post_id: string; body: string }) =>
-      addComment(supabase, {
+    mutationFn: (input: { post_id: string; body: string }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addComment(supabase, {
         ...input,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: commentKeys.byPost(pairId!, variables.post_id),
+        queryKey: commentKeys.byPost(pairId ?? "", variables.post_id),
       });
     },
   });
@@ -58,7 +60,7 @@ export function useDeleteComment() {
     }) => deleteComment(supabase, commentId),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: commentKeys.byPost(pairId!, variables.postId),
+        queryKey: commentKeys.byPost(pairId ?? "", variables.postId),
       });
     },
   });

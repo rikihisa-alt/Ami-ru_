@@ -118,7 +118,7 @@ export default function HomePage() {
       const { data: partner } = await supabase
         .from("profiles")
         .select("id, display_name")
-        .eq("pair_id", pairId!)
+        .eq("pair_id", pairId ?? "")
         .neq("id", user.id)
         .single();
 

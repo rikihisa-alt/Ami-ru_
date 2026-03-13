@@ -43,15 +43,17 @@ export function useAddCalendarEvent() {
       source_place_id?: string;
       color?: string;
       assignee_id?: string | null;
-    }) =>
-      addCalendarEvent(supabase, {
+    }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addCalendarEvent(supabase, {
         ...event,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: calendarKeys.all(pairId!),
+        queryKey: calendarKeys.all(pairId ?? ""),
       });
     },
   });
@@ -73,7 +75,7 @@ export function useUpdateCalendarEvent() {
     }) => updateCalendarEvent(supabase, eventId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: calendarKeys.all(pairId!),
+        queryKey: calendarKeys.all(pairId ?? ""),
       });
     },
   });
@@ -89,7 +91,7 @@ export function useDeleteCalendarEvent() {
     mutationFn: (eventId: string) => deleteCalendarEvent(supabase, eventId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: calendarKeys.all(pairId!),
+        queryKey: calendarKeys.all(pairId ?? ""),
       });
     },
   });

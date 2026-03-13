@@ -96,12 +96,14 @@ export function PostForm({ editPost, open, onOpenChange }: PostFormProps) {
   }, [editPost]);
 
   const addMutation = useMutation({
-    mutationFn: (post: { title?: string; body: string; tags?: string[] }) =>
-      addPost(supabase, {
+    mutationFn: (post: { title?: string; body: string; tags?: string[] }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addPost(supabase, {
         ...post,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 

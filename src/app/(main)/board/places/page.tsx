@@ -66,7 +66,10 @@ export default function PlacesView() {
       area?: string;
       tags?: string[];
       memo?: string;
-    }) => addPlace(supabase, { ...place, pair_id: pairId!, created_by: user!.id }),
+    }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addPlace(supabase, { ...place, pair_id: pairId, created_by: user.id });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 

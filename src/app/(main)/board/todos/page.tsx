@@ -60,8 +60,10 @@ export default function TodosView() {
   }, [profile?.pair_id, user, supabase]);
 
   const addMutation = useMutation({
-    mutationFn: (todo: { title: string; due_date?: string; assignee_id?: string; priority?: number }) =>
-      addTodo(supabase, { ...todo, pair_id: pairId!, created_by: user!.id }),
+    mutationFn: (todo: { title: string; due_date?: string; assignee_id?: string; priority?: number }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addTodo(supabase, { ...todo, pair_id: pairId, created_by: user.id });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 

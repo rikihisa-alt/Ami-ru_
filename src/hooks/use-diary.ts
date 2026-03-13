@@ -32,12 +32,14 @@ export function useAddDiaryEntry() {
       weather?: string;
       is_shared?: boolean;
       entry_date?: string;
-    }) =>
-      addDiaryEntry(supabase, {
+    }) => {
+      if (!profile?.pair_id || !user) throw new Error("ペアに参加してください");
+      return addDiaryEntry(supabase, {
         ...entry,
-        pair_id: profile!.pair_id!,
-        created_by: user!.id,
-      }),
+        pair_id: profile.pair_id,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["diary"],

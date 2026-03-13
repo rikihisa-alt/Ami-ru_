@@ -41,15 +41,17 @@ export function useAddTransaction() {
       scheduled_date?: string;
       recurrence?: string;
       memo?: string;
-    }) =>
-      addTransaction(supabase, {
+    }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addTransaction(supabase, {
         ...tx,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: transactionKeys.all(pairId!),
+        queryKey: transactionKeys.all(pairId ?? ""),
       });
     },
   });
@@ -71,7 +73,7 @@ export function useUpdateTransaction() {
     }) => updateTransaction(supabase, txId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: transactionKeys.all(pairId!),
+        queryKey: transactionKeys.all(pairId ?? ""),
       });
     },
   });
@@ -87,7 +89,7 @@ export function useDeleteTransaction() {
     mutationFn: (txId: string) => deleteTransaction(supabase, txId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: transactionKeys.all(pairId!),
+        queryKey: transactionKeys.all(pairId ?? ""),
       });
     },
   });

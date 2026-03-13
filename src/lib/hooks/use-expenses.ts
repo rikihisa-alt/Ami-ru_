@@ -40,15 +40,17 @@ export function useAddExpense() {
       bearer?: string;
       ratio_payer?: number;
       memo?: string;
-    }) =>
-      addExpense(supabase, {
+    }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addExpense(supabase, {
         ...expense,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: expenseKeys.all(pairId!),
+        queryKey: expenseKeys.all(pairId ?? ""),
       });
     },
   });
@@ -64,7 +66,7 @@ export function useDeleteExpense() {
     mutationFn: (expenseId: string) => deleteExpense(supabase, expenseId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: expenseKeys.all(pairId!),
+        queryKey: expenseKeys.all(pairId ?? ""),
       });
     },
   });

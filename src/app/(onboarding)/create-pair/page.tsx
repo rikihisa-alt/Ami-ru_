@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/providers/supabase-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +20,7 @@ import { Copy, Check, Share2, Mail, MessageCircle, Link as LinkIcon } from "luci
 
 export default function CreatePairPage() {
   const router = useRouter();
+  const { refreshProfile } = useUser();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -43,6 +45,7 @@ export default function CreatePairPage() {
     }
 
     setInviteCode(data.invite_code);
+    await refreshProfile();
     setIsLoading(false);
   };
 

@@ -42,12 +42,14 @@ export function useAddThanksLog() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (log: { message?: string }) =>
-      addThanksLog(supabase, {
+    mutationFn: (log: { message?: string }) => {
+      if (!profile?.pair_id || !user) throw new Error("ペアに参加してください");
+      return addThanksLog(supabase, {
         ...log,
-        pair_id: profile!.pair_id!,
-        created_by: user!.id,
-      }),
+        pair_id: profile.pair_id,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: thanksKeys.today() });
       queryClient.invalidateQueries({ queryKey: thanksKeys.week() });

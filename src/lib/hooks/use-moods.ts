@@ -42,12 +42,14 @@ export function useAddMoodLog() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (log: { mood: number; note?: string }) =>
-      addMoodLog(supabase, {
+    mutationFn: (log: { mood: number; note?: string }) => {
+      if (!profile?.pair_id || !user) throw new Error("ペアに参加してください");
+      return addMoodLog(supabase, {
         ...log,
-        pair_id: profile!.pair_id!,
-        created_by: user!.id,
-      }),
+        pair_id: profile.pair_id,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: moodKeys.today() });
       queryClient.invalidateQueries({ queryKey: moodKeys.week() });

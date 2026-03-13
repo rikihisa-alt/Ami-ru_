@@ -33,15 +33,17 @@ export function useAddShoppingItem() {
   const pairId = profile?.pair_id;
 
   return useMutation({
-    mutationFn: (item: { name: string; quantity?: string; category?: string }) =>
-      addShoppingItem(supabase, {
+    mutationFn: (item: { name: string; quantity?: string; category?: string }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addShoppingItem(supabase, {
         ...item,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: shoppingKeys.active(pairId!),
+        queryKey: shoppingKeys.active(pairId ?? ""),
       });
     },
   });
@@ -58,7 +60,7 @@ export function useToggleShoppingItem() {
     mutationFn: ({ itemId, isPurchased }: { itemId: string; isPurchased: boolean }) =>
       toggleShoppingItem(supabase, itemId, isPurchased, user?.id),
     onMutate: async ({ itemId, isPurchased }) => {
-      const queryKey = shoppingKeys.active(pairId!);
+      const queryKey = shoppingKeys.active(pairId ?? "");
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData(queryKey);
       queryClient.setQueryData(queryKey, (old: { id: string; is_purchased: boolean }[] | undefined) =>
@@ -70,13 +72,13 @@ export function useToggleShoppingItem() {
     },
     onError: (_err, _vars, context) => {
       queryClient.setQueryData(
-        shoppingKeys.active(pairId!),
+        shoppingKeys.active(pairId ?? ""),
         context?.previous
       );
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: shoppingKeys.active(pairId!),
+        queryKey: shoppingKeys.active(pairId ?? ""),
       });
     },
   });
@@ -92,7 +94,7 @@ export function useDeleteShoppingItem() {
     mutationFn: (itemId: string) => deleteShoppingItem(supabase, itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: shoppingKeys.active(pairId!),
+        queryKey: shoppingKeys.active(pairId ?? ""),
       });
     },
   });

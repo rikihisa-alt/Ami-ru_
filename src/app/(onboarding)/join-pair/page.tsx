@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/providers/supabase-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ import { Suspense } from "react";
 function JoinPairForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshProfile } = useUser();
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,6 +58,7 @@ function JoinPairForm() {
       return;
     }
 
+    await refreshProfile();
     toast.success("ペアに参加しました！");
     router.push("/home");
     router.refresh();

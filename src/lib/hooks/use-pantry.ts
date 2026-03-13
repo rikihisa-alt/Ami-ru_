@@ -43,15 +43,17 @@ export function useAddPantryItem() {
       purchase_date?: string;
       expiry_date?: string;
       memo?: string;
-    }) =>
-      addPantryItem(supabase, {
+    }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return addPantryItem(supabase, {
         ...item,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: pantryKeys.active(pairId!),
+        queryKey: pantryKeys.active(pairId ?? ""),
       });
     },
   });
@@ -66,7 +68,7 @@ export function useConsumePantryItem() {
   return useMutation({
     mutationFn: (itemId: string) => consumePantryItem(supabase, itemId),
     onMutate: async (itemId) => {
-      const queryKey = pantryKeys.active(pairId!);
+      const queryKey = pantryKeys.active(pairId ?? "");
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData(queryKey);
       queryClient.setQueryData(queryKey, (old: { id: string }[] | undefined) =>
@@ -76,13 +78,13 @@ export function useConsumePantryItem() {
     },
     onError: (_err, _itemId, context) => {
       queryClient.setQueryData(
-        pantryKeys.active(pairId!),
+        pantryKeys.active(pairId ?? ""),
         context?.previous
       );
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: pantryKeys.active(pairId!),
+        queryKey: pantryKeys.active(pairId ?? ""),
       });
     },
   });
@@ -104,7 +106,7 @@ export function useUpdatePantryItem() {
     }) => updatePantryItem(supabase, itemId, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: pantryKeys.active(pairId!),
+        queryKey: pantryKeys.active(pairId ?? ""),
       });
     },
   });
@@ -120,7 +122,7 @@ export function useDeletePantryItem() {
     mutationFn: (itemId: string) => deletePantryItem(supabase, itemId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: pantryKeys.active(pairId!),
+        queryKey: pantryKeys.active(pairId ?? ""),
       });
     },
   });
@@ -133,15 +135,17 @@ export function useMoveToShoppingList() {
   const pairId = profile?.pair_id;
 
   return useMutation({
-    mutationFn: (item: { name: string; category?: string; source_pantry_id?: string }) =>
-      moveToShoppingList(supabase, {
+    mutationFn: (item: { name: string; category?: string; source_pantry_id?: string }) => {
+      if (!pairId || !user) throw new Error("ペアに参加してください");
+      return moveToShoppingList(supabase, {
         ...item,
-        pair_id: pairId!,
-        created_by: user!.id,
-      }),
+        pair_id: pairId,
+        created_by: user.id,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: shoppingKeys.active(pairId!),
+        queryKey: shoppingKeys.active(pairId ?? ""),
       });
     },
   });
