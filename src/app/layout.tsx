@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { SupabaseProvider } from "@/providers/supabase-provider";
+import { TutorialProvider } from "@/providers/tutorial-provider";
 import { MotionLevelProvider } from "@/lib/hooks/use-motion-level";
 import { Toaster } from "@/components/ui/sonner";
+import { TutorialShell } from "@/components/tutorial/tutorial-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,8 +45,11 @@ export default function RootLayout({
           <MotionLevelProvider>
             <QueryProvider>
               <SupabaseProvider>
-                {children}
-                <Toaster />
+                <TutorialProvider>
+                  {children}
+                  <TutorialShell />
+                  <Toaster />
+                </TutorialProvider>
               </SupabaseProvider>
             </QueryProvider>
           </MotionLevelProvider>

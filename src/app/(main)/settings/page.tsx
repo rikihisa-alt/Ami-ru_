@@ -12,7 +12,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Copy, LogOut, Settings, Heart, Sun, Moon, Check, Palette, Zap } from "lucide-react";
+import {
+  Copy,
+  LogOut,
+  Settings,
+  Heart,
+  Sun,
+  Moon,
+  Check,
+  Palette,
+  Zap,
+  MessageCircle,
+  Mail,
+  Link as LinkIcon,
+  Share2,
+  GraduationCap,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +45,7 @@ export default function SettingsPage() {
   const { level: motionLevel, setLevel: setMotionLevel } = useMotionLevel();
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     const fetchPairInfo = async () => {
@@ -55,10 +71,66 @@ export default function SettingsPage() {
     fetchPairInfo();
   }, [profile?.pair_id, user?.id]);
 
+  const getJoinUrl = () => {
+    if (!inviteCode) return "";
+    const base = typeof window !== "undefined" ? window.location.origin : "";
+    return `${base}/join-pair?code=${inviteCode}`;
+  };
+
   const handleCopyCode = async () => {
     if (!inviteCode) return;
     await navigator.clipboard.writeText(inviteCode);
+    setCodeCopied(true);
     toast.success("招待コードをコピーしました");
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
+  const handleCopyLink = async () => {
+    const url = getJoinUrl();
+    await navigator.clipboard.writeText(url);
+    toast.success("招待リンクをコピーしました");
+  };
+
+  const handleShareLINE = () => {
+    const url = getJoinUrl();
+    const text = `Ami-ruで一緒に生活を管理しよう！\n招待コード: ${inviteCode}\n${url}`;
+    window.open(
+      `https://line.me/R/msg/text/?${encodeURIComponent(text)}`,
+      "_blank"
+    );
+  };
+
+  const handleShareEmail = () => {
+    const url = getJoinUrl();
+    const subject = "Ami-ruに招待されました";
+    const body = `Ami-ruで一緒に生活を管理しましょう！\n\n招待コード: ${inviteCode}\n\n以下のリンクから参加できます:\n${url}`;
+    window.open(
+      `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+      "_blank"
+    );
+  };
+
+  const handleNativeShare = async () => {
+    const url = getJoinUrl();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Ami-ru 招待",
+          text: `Ami-ruで一緒に生活を管理しよう！ 招待コード: ${inviteCode}`,
+          url,
+        });
+      } catch {
+        // キャンセル
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleStartTutorial = () => {
+    localStorage.setItem("ami-ru-tutorial", "active");
+    router.push("/home");
+    // ページ遷移後にチュートリアルが起動する
   };
 
   const handleLogout = async () => {
@@ -82,7 +154,6 @@ export default function SettingsPage() {
           <p className="font-semibold">テーマ</p>
         </div>
         <div className="space-y-5">
-          {/* ダーク / ライト切替 */}
           <div className="space-y-2">
             <Label className="text-muted-foreground">外観モード</Label>
             <div className="flex gap-2">
@@ -113,7 +184,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* カラーテーマ選択 */}
           <div className="space-y-2">
             <Label className="text-muted-foreground">テーマカラー</Label>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -194,7 +264,7 @@ export default function SettingsPage() {
         </div>
       </PrismCard>
 
-      {/* ── ペア情報 ── */}
+      {/* ── ペア情報 + 招待共有 ── */}
       <PrismCard variant="flat" animationIndex={3}>
         <div className="flex items-center gap-2.5 pb-1">
           <Heart className="h-4 w-4 text-primary" />
@@ -205,21 +275,85 @@ export default function SettingsPage() {
             ? `パートナー: ${partnerName}`
             : "パートナーが参加するのを待っています"}
         </p>
+
         {inviteCode && (
-          <div>
-            <Label className="text-muted-foreground">招待コード</Label>
-            <div className="mt-1 flex gap-2">
-              <Input
-                value={inviteCode}
-                readOnly
-                className="rounded-xl font-mono text-sm tracking-wider"
-              />
-              <PrismButton variant="secondary" size="icon" onClick={handleCopyCode}>
-                <Copy className="h-4 w-4" />
-              </PrismButton>
+          <div className="space-y-4">
+            {/* 招待コード表示 */}
+            <div>
+              <Label className="text-muted-foreground">招待コード</Label>
+              <div className="mt-1 flex gap-2">
+                <Input
+                  value={inviteCode}
+                  readOnly
+                  className="rounded-xl font-mono text-sm tracking-wider"
+                />
+                <PrismButton variant="secondary" size="icon" onClick={handleCopyCode}>
+                  {codeCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </PrismButton>
+              </div>
             </div>
+
+            {/* パートナーがまだいない場合のみ共有ボタンを表示 */}
+            {!partnerName && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">パートナーを招待する</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleShareLINE}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  >
+                    <MessageCircle className="h-4 w-4 text-green-500" />
+                    LINEで送る
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShareEmail}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  >
+                    <Mail className="h-4 w-4 text-blue-500" />
+                    メールで送る
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  >
+                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                    リンクをコピー
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNativeShare}
+                    className="flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80"
+                  >
+                    <Share2 className="h-4 w-4 text-muted-foreground" />
+                    その他の共有
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
+      </PrismCard>
+
+      {/* ── チュートリアル ── */}
+      <PrismCard variant="flat" animationIndex={4}>
+        <div className="flex items-center gap-2.5 pb-3">
+          <GraduationCap className="h-4 w-4 text-primary" />
+          <p className="font-semibold">チュートリアル</p>
+        </div>
+        <p className="pb-3 text-xs text-muted-foreground">
+          Ami-ruの使い方をもう一度確認できます
+        </p>
+        <PrismButton
+          variant="secondary"
+          className="w-full"
+          onClick={handleStartTutorial}
+        >
+          <GraduationCap className="mr-2 h-4 w-4" />
+          チュートリアルを始める
+        </PrismButton>
       </PrismCard>
 
       <Separator />

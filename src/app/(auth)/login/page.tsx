@@ -35,13 +35,19 @@ export default function LoginPage() {
     });
 
     if (error) {
+      const msg =
+        error.message === "Invalid login credentials"
+          ? "メールアドレスまたはパスワードが正しくありません"
+          : error.message;
       toast.error("ログインに失敗しました", {
-        description: error.message,
+        description: msg,
       });
       setIsLoading(false);
       return;
     }
 
+    toast.success("ログインしました");
+    router.push("/home");
     router.refresh();
   };
 

@@ -30,7 +30,7 @@ export default function SignupPage() {
     setIsLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -48,8 +48,25 @@ export default function SignupPage() {
       return;
     }
 
+    // セッションが即座に作成された場合（メール確認無効）
+    if (data.session) {
+      toast.success("登録が完了しました！");
+      router.push("/create-pair");
+      router.refresh();
+      return;
+    }
+
+    // メール確認が必要な場合
+    if (data.user && !data.session) {
+      toast.success("確認メールを送信しました", {
+        description: "メールを確認してからログインしてください",
+      });
+      router.push("/login");
+      return;
+    }
+
     toast.success("登録が完了しました");
-    router.refresh();
+    router.push("/login");
   };
 
   return (

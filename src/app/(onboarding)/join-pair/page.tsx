@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Suspense } from "react";
 
-export default function JoinPairPage() {
+function JoinPairForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // URLのクエリパラメータから招待コードを自動入力
+  useEffect(() => {
+    const codeParam = searchParams.get("code");
+    if (codeParam) {
+      setCode(codeParam);
+    }
+  }, [searchParams]);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,5 +97,21 @@ export default function JoinPairPage() {
         </p>
       </CardFooter>
     </Card>
+  );
+}
+
+export default function JoinPairPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <p className="text-sm text-muted-foreground">読み込み中...</p>
+          </CardContent>
+        </Card>
+      }
+    >
+      <JoinPairForm />
+    </Suspense>
   );
 }
