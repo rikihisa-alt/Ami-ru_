@@ -1,3 +1,5 @@
+import { BackgroundBlobs } from "@/components/layout/background-blobs";
+
 export const dynamic = "force-dynamic";
 
 export default function OnboardingLayout({
@@ -6,8 +8,9 @@ export default function OnboardingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-4">
-      <div className="w-full max-w-sm">{children}</div>
+    <div className="relative flex min-h-svh items-center justify-center p-4">
+      <BackgroundBlobs />
+      <div className="relative z-10 w-full max-w-sm">{children}</div>
     </div>
   );
 }

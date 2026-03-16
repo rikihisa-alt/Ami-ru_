@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarNavigation } from "@/components/layout/sidebar-navigation";
+import { BackgroundBlobs } from "@/components/layout/background-blobs";
 import { TutorialProvider } from "@/providers/tutorial-provider";
 import { TutorialShell } from "@/components/tutorial/tutorial-shell";
 
@@ -13,15 +14,18 @@ export default function MainLayout({
 }) {
   return (
     <TutorialProvider>
-      <div className="flex min-h-svh bg-background">
-        <SidebarNavigation />
-        <div className="flex flex-1 flex-col">
-          <Header />
-          <main className="mx-auto w-full max-w-[720px] flex-1 px-4 pb-24 pt-3 lg:max-w-none lg:px-10 lg:pb-8 lg:pt-6">
-            {children}
-          </main>
+      <div className="relative min-h-svh">
+        <BackgroundBlobs />
+        <div className="relative z-10 flex min-h-svh">
+          <SidebarNavigation />
+          <div className="flex flex-1 flex-col">
+            <Header />
+            <main className="mx-auto w-full max-w-[720px] flex-1 px-4 pb-24 pt-3 lg:max-w-none lg:px-10 lg:pb-8 lg:pt-6">
+              {children}
+            </main>
+          </div>
+          <BottomNav />
         </div>
-        <BottomNav />
       </div>
       <TutorialShell />
     </TutorialProvider>
