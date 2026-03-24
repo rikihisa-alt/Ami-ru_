@@ -40,6 +40,7 @@ export function useAddPantryItem() {
       name: string;
       quantity?: string;
       category?: string;
+      storage_location?: string;
       purchase_date?: string;
       expiry_date?: string;
       memo?: string;

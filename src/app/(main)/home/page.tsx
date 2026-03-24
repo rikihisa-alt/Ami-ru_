@@ -8,7 +8,7 @@ import { calculateSettlement } from "@/lib/utils/settlement";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
-  Refrigerator,
+  Package,
   CheckSquare,
   Wallet,
   ArrowRight,
@@ -185,7 +185,7 @@ export default function HomePage() {
 
         {/* ── 期限が近い食材 ── */}
         {expiringItems && expiringItems.length > 0 && (
-          <HomeSection title="期限が近い食材" icon={Refrigerator} href="/pantry">
+          <HomeSection title="期限が近いストック" icon={Package} href="/pantry">
             <ul>
               {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
                 const status = getExpiryStatus(item.expiry_date);

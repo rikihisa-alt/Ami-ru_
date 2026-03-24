@@ -22,6 +22,7 @@ export async function addPantryItem(
     name: string;
     quantity?: string;
     category?: string;
+    storage_location?: string;
     purchase_date?: string;
     expiry_date?: string;
     memo?: string;
@@ -55,6 +56,7 @@ export async function updatePantryItem(
     name?: string;
     quantity?: string;
     category?: string;
+    storage_location?: string;
     purchase_date?: string | null;
     expiry_date?: string | null;
     memo?: string | null;

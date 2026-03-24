@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
-  Refrigerator,
+  Package,
   Calendar,
   Wallet,
   LayoutGrid,
@@ -21,7 +21,7 @@ interface TabItem {
 
 const TABS: TabItem[] = [
   { href: "/home", label: "ホーム", icon: Home },
-  { href: "/pantry", label: "冷蔵庫", icon: Refrigerator },
+  { href: "/pantry", label: "ストック", icon: Package },
   { href: "/calendar", label: "予定", icon: Calendar },
   { href: "/money", label: "お金", icon: Wallet },
   { href: "/diary", label: "日記", icon: BookOpen },

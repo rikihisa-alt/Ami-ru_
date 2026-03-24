@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useConsumePantryItem, useMoveToShoppingList } from "@/lib/hooks/use-pantry";
-import { getCategoryLabel, PANTRY_CATEGORIES } from "@/lib/utils/categories";
+import { getCategoryLabel, STOCK_CATEGORIES, getStorageEmoji } from "@/lib/utils/categories";
 import { getExpiryStatus, getExpiryLabel } from "@/lib/utils/date";
 import { toast } from "sonner";
 import { Check, ShoppingCart } from "lucide-react";
@@ -16,6 +16,7 @@ type PantryItemCardProps = {
     name: string;
     quantity: string | null;
     category: string | null;
+    storage_location?: string | null;
     expiry_date: string | null;
     memo: string | null;
   };
@@ -35,6 +36,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
 
   const expiryStatus = getExpiryStatus(item.expiry_date);
   const expiryLabel = getExpiryLabel(item.expiry_date);
+  const storageEmoji = getStorageEmoji(item.storage_location);
 
   const handleConsume = () => {
     consumeItem.mutate(item.id);
@@ -52,6 +54,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
 
   return (
     <Card className="flex items-center gap-3 p-3">
+      <span className="text-lg flex-shrink-0">{storageEmoji}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate font-medium">{item.name}</span>
@@ -64,7 +67,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           {item.category && (
             <Badge variant="secondary" className="text-xs">
-              {getCategoryLabel(PANTRY_CATEGORIES, item.category)}
+              {getCategoryLabel(STOCK_CATEGORIES, item.category)}
             </Badge>
           )}
           {expiryStatus !== "none" && (

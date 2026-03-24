@@ -10,6 +10,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import {
   Sheet,
@@ -19,7 +21,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAddPantryItem } from "@/lib/hooks/use-pantry";
-import { PANTRY_CATEGORIES } from "@/lib/utils/categories";
+import { STOCK_CATEGORIES, STORAGE_LOCATIONS, getCategoryGroups } from "@/lib/utils/categories";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
@@ -28,10 +30,12 @@ export function PantryAddForm() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [category, setCategory] = useState("");
+  const [storageLocation, setStorageLocation] = useState("fridge");
   const [expiryDate, setExpiryDate] = useState("");
   const [memo, setMemo] = useState("");
 
   const addItem = useAddPantryItem();
+  const categoryGroups = getCategoryGroups();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +46,7 @@ export function PantryAddForm() {
         name: name.trim(),
         quantity: quantity || undefined,
         category: category || undefined,
+        storage_location: storageLocation || undefined,
         expiry_date: expiryDate || undefined,
         memo: memo || undefined,
       });
@@ -57,6 +62,7 @@ export function PantryAddForm() {
     setName("");
     setQuantity("");
     setCategory("");
+    setStorageLocation("fridge");
     setExpiryDate("");
     setMemo("");
   };
@@ -66,29 +72,44 @@ export function PantryAddForm() {
       <SheetTrigger asChild>
         <Button
           size="icon"
-          className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg lg:bottom-8"
+          className="fab-trigger fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg lg:bottom-8"
         >
           <Plus className="h-6 w-6" />
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="mx-auto max-w-lg rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>食材を追加</SheetTitle>
+          <SheetTitle>ストックを追加</SheetTitle>
         </SheetHeader>
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">食材名 *</Label>
+            <Label htmlFor="name">アイテム名 *</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="例: 牛乳"
+              placeholder="例: 牛乳, ティッシュ, 洗剤"
               autoFocus
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>保管場所</Label>
+              <Select value={storageLocation} onValueChange={setStorageLocation}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STORAGE_LOCATIONS.map((loc) => (
+                    <SelectItem key={loc.value} value={loc.value}>
+                      {loc.emoji} {loc.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="quantity">数量</Label>
               <Input
@@ -98,21 +119,27 @@ export function PantryAddForm() {
                 placeholder="例: 1本"
               />
             </div>
-            <div className="space-y-2">
-              <Label>カテゴリ</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PANTRY_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>カテゴリ</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(categoryGroups).map(([group, cats]) => (
+                  <SelectGroup key={group}>
+                    <SelectLabel className="text-[11px] text-muted-foreground">{group}</SelectLabel>
+                    {cats.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
