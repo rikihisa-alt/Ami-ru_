@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Plus, MapPin, ExternalLink, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Skeleton } from "@/components/shared/skeleton";
 
 const statusLabels: Record<string, string> = {
   want_to_go: "行きたい",
@@ -53,7 +54,7 @@ export default function PlacesView() {
 
   useRealtimeSubscription("places", queryKey, pairId);
 
-  const { data: places } = useQuery({
+  const { data: places, isLoading } = useQuery({
     queryKey,
     queryFn: () => getPlaces(supabase),
     enabled: !!pairId,
@@ -82,6 +83,7 @@ export default function PlacesView() {
   const deleteMutation = useMutation({
     mutationFn: (placeId: string) => deletePlace(supabase, placeId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+    onError: () => toast.error("削除に失敗しました"),
   });
 
   const [formOpen, setFormOpen] = useState(false);
@@ -116,7 +118,7 @@ export default function PlacesView() {
       setMemo("");
       setFormOpen(false);
     } catch {
-      // silent in demo mode
+      toast.error("追加に失敗しました");
     }
   };
 
@@ -141,7 +143,20 @@ export default function PlacesView() {
         ))}
       </div>
 
-      {!filteredPlaces?.length ? (
+      {isLoading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-border bg-card p-3 space-y-2"
+            >
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-3 w-1/3" />
+              <Skeleton className="h-3 w-2/3" />
+            </div>
+          ))}
+        </div>
+      ) : !filteredPlaces?.length ? (
         <EmptyState
           icon={MapPin}
           title="行きたい場所を保存しよう"
@@ -158,8 +173,12 @@ export default function PlacesView() {
             tags: string[];
             memo: string | null;
             status: string;
-          }) => (
-            <Card key={place.id} className="p-3">
+          }, index: number) => (
+            <Card
+              key={place.id}
+              className="p-3 motion-safe:animate-list-in"
+              style={{ animationDelay: `${index * 30}ms` }}
+            >
               <div className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

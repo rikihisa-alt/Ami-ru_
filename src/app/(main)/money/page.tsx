@@ -54,6 +54,8 @@ import { BalanceChart } from "@/components/money/balance-chart";
 import { TransactionForm } from "@/components/money/transaction-form";
 import { TransactionList } from "@/components/money/transaction-list";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Skeleton } from "@/components/shared/skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { toast } from "sonner";
 import {
   ChevronLeft,
@@ -101,8 +103,8 @@ export default function MoneyPage() {
   const [activeTab, setActiveTab] = useState("expenses");
 
   // Hooks
-  const { data: expenses } = useMonthExpenses(year, month);
-  const { data: transactions } = useMonthTransactions(year, month);
+  const { data: expenses, isLoading: expensesLoading } = useMonthExpenses(year, month);
+  const { data: transactions, isLoading: transactionsLoading } = useMonthTransactions(year, month);
   const addExpense = useAddExpense();
   const deleteExpense = useDeleteExpense();
   const deleteTxMutation = useDeleteTransaction();
@@ -404,13 +406,27 @@ export default function MoneyPage() {
           )}
 
           {/* Expense list */}
-          {expenses?.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground motion-safe:animate-prism-fade-up">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-                <Wallet className="h-8 w-8 text-muted-foreground/50" />
-              </div>
-              <p className="font-medium">今月の支出はありません</p>
+          {expensesLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+              ))}
             </div>
+          ) : expenses?.length === 0 ? (
+            <EmptyState
+              icon={Wallet}
+              title="今月の支出はありません"
+              description="記録するボタンから追加できます"
+            />
           ) : (
             <div className="space-y-2">
               {expenses?.map(
@@ -613,11 +629,28 @@ export default function MoneyPage() {
 
         {/* Tab 2: Transactions (income & fixed expenses) */}
         <TabsContent value="transactions" className="mt-4 space-y-4">
-          <TransactionList
-            transactions={transactions ?? []}
-            onEdit={handleEditTransaction}
-            onDelete={(txId) => setDeleteTxTarget(txId)}
-          />
+          {transactionsLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <TransactionList
+              transactions={transactions ?? []}
+              onEdit={handleEditTransaction}
+              onDelete={(txId) => setDeleteTxTarget(txId)}
+            />
+          )}
 
           {/* Transaction form - Add mode */}
           {!editTx && (

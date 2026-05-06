@@ -18,6 +18,7 @@ import { PostFilterBar } from "@/components/board/post-filter-bar";
 import { PostForm } from "@/components/board/post-form";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Skeleton } from "@/components/shared/skeleton";
 import { toast } from "sonner";
 import { MessageSquare } from "lucide-react";
 
@@ -42,7 +43,7 @@ export default function BulletinView() {
   useRealtimeSubscription("posts", queryKey, pairId);
 
   /* ── Data ── */
-  const { data: posts } = useQuery({
+  const { data: posts, isLoading } = useQuery({
     queryKey,
     queryFn: () => getPosts(supabase),
     enabled: !!pairId,
@@ -100,7 +101,7 @@ export default function BulletinView() {
       toast.success("削除しました");
     },
     onError: () => {
-      // silent in demo mode
+      toast.error("削除に失敗しました");
     },
   });
 
@@ -205,7 +206,20 @@ export default function BulletinView() {
       />
 
       {/* Post list */}
-      {filteredPosts.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-border bg-card p-4 space-y-2"
+            >
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+          ))}
+        </div>
+      ) : filteredPosts.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
           title={

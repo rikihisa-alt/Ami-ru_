@@ -18,9 +18,10 @@ import { PrismButton } from "@/components/ui/prism-button";
 import { STOCK_CATEGORIES, STORAGE_LOCATIONS, getCategoryGroups, getStorageEmoji } from "@/lib/utils/categories";
 import { ShoppingCart, Package } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Skeleton } from "@/components/shared/skeleton";
 
 export default function StockPage() {
-  const { data: items } = usePantryItems();
+  const { data: items, isLoading } = usePantryItems();
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("expiry");
@@ -137,7 +138,23 @@ export default function StockPage() {
         </Select>
       </div>
 
-      {!filteredItems?.length ? (
+      {isLoading ? (
+        <div className="space-y-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            >
+              <Skeleton className="h-6 w-6 rounded" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          ))}
+        </div>
+      ) : !filteredItems?.length ? (
         <EmptyState
           icon={Package}
           title="ストックを管理しよう"

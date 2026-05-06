@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Check, Trash2, CheckSquare, User } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Skeleton } from "@/components/shared/skeleton";
 
 export default function TodosView() {
   const supabase = useSupabase();
@@ -40,7 +41,7 @@ export default function TodosView() {
 
   useRealtimeSubscription("todos", queryKey, pairId);
 
-  const { data: todos } = useQuery({
+  const { data: todos, isLoading } = useQuery({
     queryKey,
     queryFn: () => getActiveTodos(supabase),
     enabled: !!pairId,
@@ -111,7 +112,7 @@ export default function TodosView() {
       setAssigneeId("");
       setFormOpen(false);
     } catch {
-      // silent in demo mode
+      toast.error("タスクの追加に失敗しました");
     }
   };
 
@@ -138,7 +139,22 @@ export default function TodosView() {
         ))}
       </div>
 
-      {!filteredTodos?.length ? (
+      {isLoading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            >
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : !filteredTodos?.length ? (
         <EmptyState
           icon={CheckSquare}
           title="ふたりのやることを管理しよう"
@@ -154,19 +170,23 @@ export default function TodosView() {
             assignee_id: string | null;
             status: string;
             priority: number;
-          }) => {
+          }, index: number) => {
             const isOverdue = todo.due_date && todo.due_date < today;
             return (
-              <Card key={todo.id} className="flex items-center gap-3 p-3">
+              <Card
+                key={todo.id}
+                className="flex items-center gap-3 p-3 motion-safe:animate-list-in"
+                style={{ animationDelay: `${index * 30}ms` }}
+              >
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 rounded-full border-2 border-border hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+                  className="group h-8 w-8 shrink-0 rounded-full border-2 border-border hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950"
                   onClick={() =>
                     toggleMutation.mutate({ todoId: todo.id, status: "done" })
                   }
                 >
-                  <Check className="h-4 w-4 opacity-0 hover:opacity-100" />
+                  <Check className="h-4 w-4 text-emerald-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </Button>
                 <div className="min-w-0 flex-1">
                   <span className="text-sm font-medium">{todo.title}</span>

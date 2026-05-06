@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useUser } from "@/providers/supabase-provider";
 import { useDiaryEntries, useAddDiaryEntry, useDeleteDiaryEntry } from "@/hooks/use-diary";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { Skeleton } from "@/components/shared/skeleton";
 import {
   BookOpen,
   Plus,
@@ -41,6 +45,7 @@ export default function DiaryPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [isWriting, setIsWriting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const { data: entries, isLoading } = useDiaryEntries(year, month);
   const addMutation = useAddDiaryEntry();
@@ -72,19 +77,27 @@ export default function DiaryPage() {
         weather: weather || undefined,
         entry_date: new Date().toISOString().split("T")[0],
       });
+      toast.success("日記を保存しました");
       setTitle("");
       setBody("");
       setMood(null);
       setWeather("");
       setIsWriting(false);
     } catch {
-      // error handled by mutation
+      toast.error("保存に失敗しました");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("この日記を削除しますか？")) return;
-    await deleteMutation.mutateAsync(id);
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMutation.mutateAsync(deleteTarget);
+      toast.success("削除しました");
+    } catch {
+      toast.error("削除に失敗しました");
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   return (
@@ -189,25 +202,26 @@ export default function DiaryPage() {
 
       {/* エントリー一覧 */}
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-border bg-card p-4 space-y-2"
+            >
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-3/4" />
+            </div>
+          ))}
         </div>
       ) : entries?.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-16 text-center">
-          <BookOpen className="h-10 w-10 text-muted-foreground/40" />
-          <div>
-            <p className="text-[15px] font-medium text-foreground">まだ日記がありません</p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              ふたりの毎日を記録しよう
-            </p>
-          </div>
-          <button
-            onClick={() => setIsWriting(true)}
-            className="mt-2 rounded-lg border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
-          >
-            書いてみる
-          </button>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="まだ日記がありません"
+          description="ふたりの毎日を記録しよう"
+          action={{ label: "書いてみる", onClick: () => setIsWriting(true) }}
+        />
       ) : (
         <div className="space-y-3">
           {entries?.map((entry: {
@@ -246,7 +260,7 @@ export default function DiaryPage() {
                   </div>
                   {isOwn && (
                     <button
-                      onClick={() => handleDelete(entry.id)}
+                      onClick={() => setDeleteTarget(entry.id)}
                       className="rounded-lg p-1 text-muted-foreground/50 hover:bg-muted hover:text-red-500 transition-colors"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -277,6 +291,15 @@ export default function DiaryPage() {
           <Plus className="h-6 w-6" />
         </button>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="この日記を削除しますか？"
+        description="この操作は取り消せません。"
+        onConfirm={handleConfirmDelete}
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { EmotionSelector } from "@/components/emotion/emotion-selector";
 import { ThanksButton } from "@/components/emotion/thanks-button";
+import { SkeletonRow } from "@/components/shared/skeleton";
 
 /* ── 挨拶 ── */
 type TimeSlot = "morning" | "afternoon" | "evening";
@@ -49,7 +50,7 @@ export default function HomePage() {
   const pairId = profile?.pair_id;
   const timeSlot = getTimeSlot();
 
-  const { data: todayEvents } = useQuery({
+  const { data: todayEvents, isLoading: eventsLoading } = useQuery({
     queryKey: ["home", "events", pairId],
     queryFn: async () => {
       const today = new Date();
@@ -66,7 +67,25 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  const { data: expiringItems } = useQuery({
+  const { data: upcomingEvents } = useQuery({
+    queryKey: ["home", "upcoming", pairId],
+    queryFn: async () => {
+      const today = new Date();
+      const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+      const sevenDaysLater = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
+      const { data } = await supabase
+        .from("calendar_events")
+        .select("*")
+        .gte("start_at", tomorrow.toISOString())
+        .lt("start_at", sevenDaysLater.toISOString())
+        .order("start_at")
+        .limit(5);
+      return data ?? [];
+    },
+    enabled: !!pairId,
+  });
+
+  const { data: expiringItems, isLoading: pantryLoading } = useQuery({
     queryKey: ["home", "expiring", pairId],
     queryFn: async () => {
       const threeDaysLater = new Date();
@@ -83,7 +102,7 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  const { data: todayTodos } = useQuery({
+  const { data: todayTodos, isLoading: todosLoading } = useQuery({
     queryKey: ["home", "todos", pairId],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
@@ -98,7 +117,7 @@ export default function HomePage() {
     enabled: !!pairId,
   });
 
-  const { data: settlement } = useQuery({
+  const { data: settlement, isLoading: settlementLoading } = useQuery({
     queryKey: ["home", "settlement", pairId],
     queryFn: async () => {
       const now = new Date();
@@ -151,7 +170,12 @@ export default function HomePage() {
       <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* ── 今日の予定 ── */}
         <HomeSection title="今日の予定" icon={Calendar} href="/calendar">
-          {todayEvents?.length === 0 ? (
+          {eventsLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : todayEvents?.length === 0 ? (
             <p className="px-4 py-3 text-[14px] text-muted-foreground">予定はありません</p>
           ) : (
             <ul>
@@ -169,7 +193,12 @@ export default function HomePage() {
 
         {/* ── 今日のToDo ── */}
         <HomeSection title="今日のToDo" icon={CheckSquare} href="/board/todos">
-          {todayTodos?.length === 0 ? (
+          {todosLoading ? (
+            <>
+              <SkeletonRow />
+              <SkeletonRow />
+            </>
+          ) : todayTodos?.length === 0 ? (
             <p className="px-4 py-3 text-[14px] text-muted-foreground">タスクはありません</p>
           ) : (
             <ul>
@@ -183,8 +212,39 @@ export default function HomePage() {
           )}
         </HomeSection>
 
+        {/* ── 今後の予定 ── */}
+        {upcomingEvents && upcomingEvents.length > 0 && (
+          <HomeSection title="今後の予定" icon={Calendar} href="/calendar">
+            <ul>
+              {upcomingEvents.map((event: { id: string; title: string; start_at: string; is_all_day: boolean }) => {
+                const d = new Date(event.start_at);
+                const today = new Date();
+                const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                const isTomorrow = d.toDateString() === tomorrow.toDateString();
+                const dateLabel = isTomorrow
+                  ? "明日"
+                  : `${d.getMonth() + 1}/${d.getDate()}`;
+                return (
+                  <li key={event.id} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="min-w-[42px] text-[13px] text-muted-foreground">
+                      {dateLabel}
+                    </span>
+                    <span className="text-[15px] text-foreground truncate">{event.title}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </HomeSection>
+        )}
+
         {/* ── 期限が近い食材 ── */}
-        {expiringItems && expiringItems.length > 0 && (
+        {pantryLoading ? (
+          <HomeSection title="期限が近いストック" icon={Package} href="/pantry">
+            <SkeletonRow />
+            <SkeletonRow />
+          </HomeSection>
+        ) : null}
+        {!pantryLoading && expiringItems && expiringItems.length > 0 && (
           <HomeSection title="期限が近いストック" icon={Package} href="/pantry">
             <ul>
               {expiringItems.map((item: { id: string; name: string; expiry_date: string }) => {
@@ -212,7 +272,9 @@ export default function HomePage() {
 
         {/* ── 今月の精算 ── */}
         <HomeSection title="今月の精算" icon={Wallet} href="/money">
-          {!settlement || settlement.amount === 0 ? (
+          {settlementLoading ? (
+            <SkeletonRow />
+          ) : !settlement || settlement.amount === 0 ? (
             <p className="px-4 py-3 text-[14px] text-muted-foreground">精算なし</p>
           ) : (
             <div className="flex items-center gap-2 px-4 py-3">
